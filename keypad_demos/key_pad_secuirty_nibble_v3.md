@@ -7,7 +7,7 @@ BEGIN KeypadSecuritySystem
         LOCKOUT_DURATION = 200 ms
         SECURITY_LOCKOUT = 60000 ms
         SUCCESS_UNLOCK_TIME = 5000 ms
-        MAX_CODE_LENGTH = 8
+        MAX_CODE_LENGTH = 4
         MAX_FAILED_ATTEMPTS = 3
 
     INITIALIZE State Variables:
@@ -15,7 +15,7 @@ BEGIN KeypadSecuritySystem
         buttonStates = [0, 0, 0, 0]
         buttonPressStartTimes = [0, 0, 0, 0]
         codeBuffer = []
-        storedCode = [3, 12, 1]  // Predefined security code
+        storedCode = [3, 10, 1, 8]  // Predefined security code
         failedAttempts = 0
         inputStartTime = 0
         systemState = "IDLE"
@@ -114,5 +114,12 @@ BEGIN KeypadSecuritySystem
         RETURN true IF all elements match, else false
 
     CALL initialize()
+
+    <h3>How to Use:</h3>
+    <p><strong>Correct code:</strong> 3, 10, 1, 8</p>
+    <p> - Button 1 (long press)</p>
+    <p> - Button 2 (long press)</p>
+    <p> - Button 3 (long press)</p>
+    <p> - Button 4 (long press)</p>
 
 END KeypadSecuritySystem
