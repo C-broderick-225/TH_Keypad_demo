@@ -253,17 +253,17 @@
         /* Add dark mode at the end of existing styles */
         @media (prefers-color-scheme: dark) {
             body {
-                background-color: #1a1a1a;
-                color: #e0e0e0;
+                background-color: #1a1a1a; /* Darker background */
+                color: #e0e0e0; /* Lighter text color */
             }
 
             .container {
-                background-color: #2d2d2d;
+                background-color: #2d2d2d; /* Darker container */
             }
 
             .button {
-                background-color: #3a3a3a;
-                color: #fff;
+                background-color: #3a3a3a; /* Darker button */
+                color: #fff; /* White text for buttons */
             }
 
             .button:hover {
@@ -271,8 +271,12 @@
             }
 
             .instructions {
-                background-color: #2d2d2d;
-                color: #e0e0e0;
+                background-color: #2d2d2d; /* Darker background for instructions */
+                color: #e0e0e0; /* Lighter text color */
+            }
+
+            .instructions h3 {
+                color: #fff; /* White color for headings */
             }
 
             .digit {
