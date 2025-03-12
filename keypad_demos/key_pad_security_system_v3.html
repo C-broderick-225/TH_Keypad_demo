@@ -306,6 +306,28 @@
         }
         
         /* ... maintain same dark mode styles as above for other classes ... */
+
+        /* Add styles for the back button */
+        .back-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #444;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+            transition: all 0.1s;
+        }
+        .back-button:hover {
+            background-color: #555;
+        }
+        .back-button:active {
+            transform: translateY(2px);
+            background-color: #666;
+        }
     </style>
 </head>
 <body>
@@ -356,12 +378,13 @@
         </div>
         
         <div class="status" id="status"></div>
+        <button class="back-button" onclick="window.location.href='index.html'">Back</button>
     </div>
     
     <div class="instructions">
         <h3>How to Use:</h3>
-        <p><strong>Click/Tap:</strong> tap a button to add number to current value.</p>
-        <p><strong>Hold:</strong> Long press (deep press) for 0.5 seconds to confirm the current value.</p>
+        <p><strong>Click/Tap:</strong> tap a button to add value to current nibble.</p>
+        <p><strong>Hold:</strong> Long press (deep press) for 0.5 seconds to confirm the current nibble.</p>
         <p><strong>Correct code:</strong> 3, 10, 1, 8</p>
         <p> - Button 1+2 (long press)</p>
         <p> - Buttons 2+4 (long press)</p>
