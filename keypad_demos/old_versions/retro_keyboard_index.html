@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro Security Terminal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Press Start 2P', cursive;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #000;
+            color: #0f0;
+            text-shadow: 0 0 5px #0f0;
+            line-height: 1.5;
+        }
+
+        .container {
+            background: #111;
+            padding: 2rem;
+            border-radius: 10px;
+            border: 3px solid #0f0;
+            box-shadow: 0 0 20px #0f0,
+                       inset 0 0 20px #0f0;
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+        }
+
+        .screen-effect {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .screen-effect::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 255, 0, 0.1),
+                rgba(0, 255, 0, 0.1) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            animation: scan 10s linear infinite;
+        }
+
+        @keyframes scan {
+            from { transform: translateY(-100%); }
+            to { transform: translateY(100%); }
+        }
+
+        h1 {
+            color: #0f0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 2rem;
+            font-size: 1.5rem;
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .button {
+            padding: 1.5rem;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1rem;
+            border: 3px solid #0f0;
+            border-radius: 8px;
+            background: #000;
+            color: #0f0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-shadow: 0 0 5px #0f0;
+            box-shadow: 0 0 10px #0f0;
+            text-transform: uppercase;
+            position: relative;
+        }
+
+        .button::after {
+            content: attr(data-key);
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 0.6rem;
+            color: #0f0;
+            opacity: 0.7;
+        }
+
+        .button:hover {
+            background: #020;
+            box-shadow: 0 0 20px #0f0;
+        }
+
+        .button.pressed {
+            background: #0f0;
+            color: #000;
+            text-shadow: none;
+        }
+
+        .button.deep-pressed {
+            background: #0a0;
+            color: #000;
+            text-shadow: none;
+        }
+
+        .led-panel {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin: 1rem 0;
+        }
+
+        .led {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #111;
+            border: 2px solid #0f0;
+            box-shadow: 0 0 10px #000;
+            transition: all 0.3s ease;
+        }
+
+        .led.blue { 
+            background: #00f;
+            box-shadow: 0 0 20px #00f;
+        }
+        .led.red { 
+            background: #f00;
+            box-shadow: 0 0 20px #f00;
+        }
+        .led.green { 
+            background: #0f0;
+            box-shadow: 0 0 20px #0f0;
+        }
+
+        .code-display {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.2rem;
+            margin: 1.5rem 0;
+            min-height: 2rem;
+            padding: 1rem;
+            background: #000;
+            border: 2px solid #0f0;
+            color: #0f0;
+            text-shadow: 0 0 5px #0f0;
+        }
+
+        .status {
+            margin-top: 1rem;
+            padding: 1rem;
+            font-size: 1rem;
+            text-transform: uppercase;
+        }
+
+        .instructions {
+            margin-top: 2rem;
+            font-size: 0.7rem;
+            color: #0f0;
+            text-align: left;
+            border-top: 2px solid #0f0;
+            padding-top: 1rem;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 1; }
+            5% { opacity: 0.8; }
+            10% { opacity: 1; }
+            15% { opacity: 0.9; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            85% { opacity: 0.8; }
+            90% { opacity: 1; }
+            95% { opacity: 0.9; }
+            100% { opacity: 1; }
+        }
+
+        .container {
+            animation: flicker 5s infinite;
+        }
+
+        .key-hint {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 0.6em;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container screen-effect">
+        <h1>Security Terminal v1.0</h1>
+        
+        <div class="led-panel">
+            <div class="led" id="statusLed"></div>
+            <div class="led" id="errorLed"></div>
+            <div class="led" id="successLed"></div>
+        </div>
+
+        <div class="code-display" id="codeDisplay">READY...</div>
+
+        <div class="keypad">
+            <button class="button" data-value="1" data-key="[1]">BTN-1</button>
+            <button class="button" data-value="2" data-key="[2]">BTN-2</button>
+            <button class="button" data-value="4" data-key="[3]">BTN-3</button>
+            <button class="button" data-value="8" data-key="[4]">BTN-4</button>
+        </div>
+
+        <div class="status" id="statusDisplay"></div>
+
+        <div class="instructions">
+            <p>* SYSTEM INSTRUCTIONS *</p>
+            <p>1> PRESS BUTTONS OR KEYS (1-4)</p>
+            <p>2> HOLD BUTTON/KEY 0.5s TO CONFIRM</p>
+            <p>3> CODE SEQUENCE: 3-12-1-9-3-7</p>
+            <p>4> PRESS SPACE TO CONFIRM WITH KEYS</p>
+            <p>! WARNING: 3 FAILS = LOCKOUT !</p>
+        </div>
+    </div>
+    <script src="retro_keyboard_keypad.js"></script>
+</body>
+</html> 
