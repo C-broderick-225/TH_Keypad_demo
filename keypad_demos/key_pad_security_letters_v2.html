@@ -439,11 +439,17 @@
             "C": "C",
             "D": "D",
             "AB": "AB",
+            "BA": "AB", // Add reverse order mappings
             "AC": "AC", 
+            "CA": "AC", // Add reverse order mappings
             "AD": "AD",
+            "DA": "AD", // Add reverse order mappings
             "BC": "BC",
+            "CB": "BC", // Add reverse order mappings
             "BD": "BD",
-            "CD": "CD"
+            "DB": "BD", // Add reverse order mappings
+            "CD": "DC", // This maps CD to DC for the third part of the code
+            "DC": "DC"
         };
         
         // DOM Elements
@@ -590,24 +596,28 @@
             }
             
             // Join the button labels to form a combination (e.g., "AB", "C", etc.)
-            const combination = activeButtons.join("");
+            const combination = activeButtons.sort().join("");
             
             if (combination in inputMap) {
+                // Get the standardized combination from inputMap
+                const mappedCombination = inputMap[combination];
+                
                 // Valid combination
-                log(`Registered input: ${combination}`);
+                log(`Registered input: ${mappedCombination}`);
                 
                 // Provide visual/haptic feedback
                 if (window.navigator && window.navigator.vibrate) {
                     window.navigator.vibrate(100);
                 }
                 
-                codeBuffer.push(combination);
+                // Add the mapped combination to the code buffer, not the sorted input
+                codeBuffer.push(mappedCombination);
                 updateCodeDisplay();
                 
                 if (codeBuffer.length === storedCode.length) {
                     validateCode();
                 } else {
-                    setSystemState(STATE.LOCKOUT);
+                    setSystemState(STATE.INPUT_ACTIVE); // Ensure state is active for further inputs
                 }
             } else {
                 // Invalid combination
