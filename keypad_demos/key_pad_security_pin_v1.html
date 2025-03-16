@@ -286,6 +286,30 @@
             transform: translateY(2px);
             background-color: #666;
         }
+        
+        .cancel-button {
+            margin-top: -10px;
+            margin-bottom: 20px;
+            height: 50px;
+            background-color: #d32f2f;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+            transition: all 0.1s;
+            width: 100%;
+        }
+        
+        .cancel-button:hover {
+            background-color: #b71c1c;
+        }
+        
+        .cancel-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
     </style>
 </head>
 <body>
@@ -328,6 +352,8 @@
             <button class="button" id="btn3" data-value="3">3</button>
             <button class="button" id="btn4" data-value="4">4</button>
         </div>
+        
+        <button class="cancel-button" id="btnCancel">CANCEL</button>
         
         <div class="status" id="status"></div>
     
@@ -383,6 +409,7 @@
         const successLed = document.getElementById('successLed');
         const statusDisplay = document.getElementById('status');
         const digits = Array.from(document.querySelectorAll('.pin-digit'));
+        const cancelButton = document.getElementById('btnCancel');
         
         // Initialize
         initialize();
@@ -409,6 +436,19 @@
                 
                 // Prevent text selection on button hold
                 button.addEventListener('selectstart', (e) => e.preventDefault());
+            });
+            
+            // Set up cancel button event listener
+            cancelButton.addEventListener('click', () => {
+                log("Input cancelled by user");
+                
+                // Provide haptic feedback if available
+                if (window.navigator && window.navigator.vibrate) {
+                    window.navigator.vibrate(150);
+                }
+                
+                // Reset the system
+                resetSystem();
             });
             
             document.body.classList.add('force-dark');
@@ -515,10 +555,10 @@
         }
         
         function updatePinDisplay() {
-            // Update the digital display to show masked PIN
+            // Update the digital display to show the actual input numbers
             digits.forEach((digit, index) => {
                 if (index < codeBuffer.length && index < storedCode.length) {
-                    digit.textContent = '*'; // Mask the actual digits for security
+                    digit.textContent = codeBuffer[index]; // Show the actual digit
                 } else {
                     digit.textContent = '-';
                 }
