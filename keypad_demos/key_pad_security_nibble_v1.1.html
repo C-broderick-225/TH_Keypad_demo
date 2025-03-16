@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Key Pad Security System Demo v1.1</title>
+    <style>
+        :root {
+            --bg-color: #f0f0f0;
+            --container-bg: #333;
+            --button-bg: #444;
+            --button-hover: #555;
+            --button-active: #666;
+            --button-deep: #777;
+            --text-color: #fff;
+            --status-bg: #222;
+            --status-text: #99ff99;
+            --digit-bg: #333;
+            --digit-text: #0f0;
+            --instructions-bg: #fff;
+            --instructions-text: #333;
+            --cancel-bg: #d32f2f;
+            --cancel-hover: #b71c1c;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            touch-action: manipulation;
+            color: var(--text-color);
+        }
+        
+        .container {
+            background-color: var(--container-bg);
+            border-radius: 15px;
+            padding: 30px;
+            width: 320px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        
+        .title {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .button {
+            height: 80px;
+            background-color: var(--button-bg);
+            border: none;
+            border-radius: 10px;
+            color: var(--text-color);
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+            transition: all 0.1s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            -webkit-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        
+        .button:hover { background-color: var(--button-hover); }
+        .button:active, .button.pressed-shallow {
+            transform: translateY(2px);
+            background-color: var(--button-active);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        .button.pressed-deep {
+            transform: translateY(5px);
+            background-color: var(--button-deep);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+        }
+        
+        .button.deep-press-progress {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .button.deep-press-progress::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background-color: #4CAF50;
+            width: 0%;
+            transition: width 0.5s linear;
+        }
+        
+        .button.deep-press-progress.active::after { width: 100%; }
+        
+        .leds {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .leds div {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 10px;
+        }
+        
+        .leds span {
+            color: #e0e0e0;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .led {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: var(--container-bg);
+            border: 2px solid rgba(255,255,255,0.2);
+            position: relative;
+        }
+        
+        .led::after {
+            content: "";
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: rgba(255,255,255,0.3);
+        }
+        
+        .led.blue { background-color: #334455; }
+        .led.red { background-color: #553333; }
+        .led.green { background-color: #335533; }
+        
+        .led.blue.active { background-color: #2196F3; box-shadow: 0 0 10px #2196F3; }
+        .led.red.active { background-color: #F44336; box-shadow: 0 0 10px #F44336; }
+        .led.green.active { background-color: #4CAF50; box-shadow: 0 0 10px #4CAF50; }
+        
+        .led.blue.blink { animation: blink-blue 1s infinite; }
+        .led.blue.fast-blink { animation: blink-blue 0.3s infinite; }
+        
+        @keyframes blink-blue {
+            0%, 100% { background-color: #334455; box-shadow: none; }
+            50% { background-color: #2196F3; box-shadow: 0 0 10px #2196F3; }
+        }
+        
+        .status {
+            background-color: var(--status-bg);
+            color: var(--status-text);
+            font-family: monospace;
+            padding: 15px;
+            border-radius: 5px;
+            height: 150px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        
+        .status p { margin: 5px 0; }
+        
+        .nibble-display {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            background-color: var(--status-bg);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .digit {
+            width: 30px;
+            height: 40px;
+            background-color: var(--digit-bg);
+            color: var(--digit-text);
+            border-radius: 3px;
+            margin: 0 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: monospace;
+            font-size: 20px;
+        }
+        
+        .instructions {
+            background-color: var(--instructions-bg);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            width: 320px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            color: var(--instructions-text);
+        }
+        
+        .current-value-display {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .cancel-button {
+            margin-top: -10px;
+            margin-bottom: 20px;
+            height: 50px;
+            background-color: var(--cancel-bg);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+            transition: all 0.1s;
+            width: 100%;
+        }
+        
+        .cancel-button:hover { background-color: var(--cancel-hover); }
+        .cancel-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        
+        .back-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: var(--button-bg);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+            transition: all 0.1s;
+        }
+        
+        .back-button:hover { background-color: var(--button-hover); }
+        .back-button:active {
+            transform: translateY(2px);
+            background-color: var(--button-active);
+        }
+        
+        /* Mobile optimization */
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            
+            .container {
+                width: 90%;
+                max-width: 350px;
+                padding: 15px;
+            }
+            
+            .keypad { gap: 15px; }
+            .button { height: 100px; }
+            h1 { font-size: 1.5rem; }
+            
+            .instructions {
+                width: 90%;
+                max-width: 350px;
+            }
+        }
+        
+        /* Dark mode */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #1a1a1a;
+                --container-bg: #2d2d2d;
+                --button-bg: #3a3a3a;
+                --button-hover: #4a4a4a;
+                --text-color: #e0e0e0;
+                --status-bg: #262626;
+                --status-text: #90ee90;
+                --digit-bg: #404040;
+                --digit-text: #7fff7f;
+                --instructions-bg: #2d2d2d;
+                --instructions-text: #fff;
+            }
+        }
+        
+        /* Manual dark mode override */
+        body.force-dark {
+            --bg-color: #1a1a1a;
+            --container-bg: #2d2d2d;
+            --button-bg: #3a3a3a;
+            --button-hover: #4a4a4a;
+            --text-color: #e0e0e0;
+            --status-bg: #262626;
+            --status-text: #90ee90;
+            --digit-bg: #404040;
+            --digit-text: #7fff7f;
+            --instructions-bg: #2d2d2d;
+            --instructions-text: #fff;
+        }
+    </style>
+</head>
+<body>
+    <h1>Key Pad Security System Demo</h1>
+    
+    <div class="container">
+        <h2 class="title">Security Keypad</h2>
+        
+        <div class="current-value-display">
+            <h3>Current Value: <span id="currentValue">0</span></h3>
+        </div>
+        
+        <div class="leds">
+            <div>
+                <span>Status LED</span>
+                <div class="led blue" id="statusLed" title="Status LED"></div>
+            </div>
+            <div>
+                <span>Error LED</span>
+                <div class="led red" id="errorLed" title="Error LED"></div>
+            </div>
+            <div>
+                <span>Success LED</span>
+                <div class="led green" id="successLed" title="Success LED"></div>
+            </div>
+        </div>
+
+        <div>
+            <p><strong>Correct code:</strong> 3, 10, 1, 8</p>
+        </div>
+            
+        <div class="nibble-display">
+            <div class="digit" id="digit1">-</div>
+            <div class="digit" id="digit2">-</div>
+            <div class="digit" id="digit3">-</div>
+            <div class="digit" id="digit4">-</div>
+        </div>
+        
+        <div class="keypad">
+            <button class="button" id="btn1" data-bit="0" data-value="1">1</button>
+            <button class="button" id="btn2" data-bit="1" data-value="2">2</button>
+            <button class="button" id="btn3" data-bit="2" data-value="4">4</button>
+            <button class="button" id="btn4" data-bit="3" data-value="8">8</button>
+        </div>
+        
+        <button class="cancel-button" id="btnCancel">CANCEL</button>
+        
+        <div class="status" id="status"></div>
+        <button class="back-button" onclick="window.location.href='/TH_Keypad_demo/'">Back</button>
+    </div>
+    
+    <div class="instructions">
+        <h3>How to Use:</h3>
+        <p><strong>Click/Tap:</strong> tap a button to add value to current nibble.</p>
+        <p><strong>Hold:</strong> Long press (deep press) for 0.5 seconds to confirm the current nibble.</p>
+        <p><strong>Correct code:</strong> 3, 10, 1, 8</p>
+        <p> - Button 1 then hold 2 (long press)</p>
+        <p> - Buttons 2 then hold 4 (long press)</p>
+        <p> - Button 1 (long press)</p>
+        <p> - Button 4 (long press)</p>
+        <p><strong>Watch the LEDs for system status feedback!</strong></p>
+        <div id="mobileInstructions" style="display: none; margin-top: 10px; padding: 10px; background-color: #4e4e4c; border-radius: 5px;">
+            <p><strong>Mobile users:</strong> Touch and hold a button for 0.5 seconds to confirm. You'll see the button depress further to indicate a deep press.</p>
+            <p>If your phone has vibration enabled, you'll feel a vibration when the deep press is registered.</p>
+        </div>
+    </div>
+    
+    <script>
+        (() => {
+            // Constants
+            const CONFIG = {
+                DEBOUNCE_TIME: 50,
+                CONFIRMATION_THRESHOLD: 500,
+                INPUT_TIMEOUT: 10000,
+                LOCKOUT_DURATION: 200,
+                SECURITY_LOCKOUT: 60000,
+                SUCCESS_UNLOCK_TIME: 5000,
+                MAX_CODE_LENGTH: 4,
+                MAX_FAILED_ATTEMPTS: 3,
+                CORRECT_CODE: [3, 10, 1, 8]
+            };
+            
+            // System States
+            const STATE = {
+                IDLE: 'IDLE',
+                INPUT_ACTIVE: 'INPUT_ACTIVE',
+                CONFIRMATION: 'CONFIRMATION',
+                LOCKOUT: 'LOCKOUT',
+                SECURITY_LOCKOUT: 'SECURITY_LOCKOUT'
+            };
+            
+            // DOM Elements
+            const elements = {
+                buttons: Array.from(document.querySelectorAll('.button')),
+                statusLed: document.getElementById('statusLed'),
+                errorLed: document.getElementById('errorLed'),
+                successLed: document.getElementById('successLed'),
+                statusDisplay: document.getElementById('status'),
+                digits: Array.from(document.querySelectorAll('.digit')),
+                cancelButton: document.getElementById('btnCancel'),
+                currentValueDisplay: document.getElementById('currentValue')
+            };
+            
+            // System state
+            const system = {
+                currentSum: 0,
+                buttonStates: [0, 0, 0, 0],
+                buttonPressStartTimes: [0, 0, 0, 0],
+                codeBuffer: [],
+                failedAttempts: 0,
+                inputStartTime: 0,
+                state: STATE.IDLE,
+                timeoutId: null
+            };
+            
+            // Initialize
+            function initialize() {
+                log("System initialized");
+                setSystemState(STATE.IDLE);
+                startIdleLedBlink();
+                
+                // Set up button event listeners
+                elements.buttons.forEach(setupButtonEvents);
+                
+                // Set up cancel button event listener
+                elements.cancelButton.addEventListener('click', handleCancel);
+                
+                // Show mobile instructions if on a touch device
+                if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+                    document.getElementById('mobileInstructions').style.display = 'block';
+                }
+                
+                // Force dark mode
+                document.body.classList.add('force-dark');
+                log("Forced dark mode enabled");
+            }
+            
+            // Set up button event listeners
+            function setupButtonEvents(button) {
+                const buttonIndex = parseInt(button.id.slice(3)) - 1;
+                
+                // Common handler for both mouse and touch events
+                const handlePress = (e) => {
+                    if (e.type.startsWith('touch')) e.preventDefault();
+                    handleButtonPress(buttonIndex, button);
+                };
+                
+                const handleRelease = (e) => {
+                    if (e.type.startsWith('touch')) e.preventDefault();
+                    handleButtonRelease(buttonIndex, button);
+                };
+                
+                // Mouse Events
+                button.addEventListener('mousedown', handlePress);
+                button.addEventListener('mouseup', handleRelease);
+                button.addEventListener('mouseleave', handleRelease);
+                
+                // Touch Events
+                button.addEventListener('touchstart', handlePress);
+                button.addEventListener('touchend', handleRelease);
+                button.addEventListener('touchcancel', handleRelease);
+                
+                // Prevent text selection
+                button.addEventListener('selectstart', e => e.preventDefault());
+            }
+            
+            function handleButtonPress(buttonIndex, button) {
+                if (system.state === STATE.LOCKOUT || system.state === STATE.SECURITY_LOCKOUT) return;
+                
+                // Record press start time for deep press detection
+                system.buttonPressStartTimes[buttonIndex] = Date.now();
+                
+                // Shallow press immediately
+                system.buttonStates[buttonIndex] = 1;
+                button.classList.add('pressed-shallow');
+                
+                // Visual indicator for deep press progress
+                button.classList.add('deep-press-progress');
+                requestAnimationFrame(() => button.classList.add('active'));
+                
+                // Accumulate the sum of button presses
+                const bitValue = parseInt(button.dataset.value);
+                system.currentSum += bitValue;
+                updateNibbleDisplay();
+                
+                // Update the current value display
+                elements.currentValueDisplay.textContent = system.currentSum;
+
+                if (system.state === STATE.IDLE) {
+                    setSystemState(STATE.INPUT_ACTIVE);
+                    system.inputStartTime = Date.now();
+                    startInputTimeout();
+                }
+                
+                // Start deep press detection
+                const deepPressDetectorId = setTimeout(() => {
+                    if (system.buttonStates[buttonIndex] === 1 && system.state === STATE.INPUT_ACTIVE) {
+                        // Deep press detected
+                        system.buttonStates[buttonIndex] = 2;
+                        button.classList.remove('pressed-shallow', 'deep-press-progress', 'active');
+                        button.classList.add('pressed-deep');
+                        
+                        // Haptic feedback if supported
+                        if (window.navigator && window.navigator.vibrate) {
+                            window.navigator.vibrate(100);
+                        }
+                        
+                        // Confirm current sum
+                        confirmSum();
+                    }
+                }, CONFIG.CONFIRMATION_THRESHOLD);
+                
+                // Store the timeout ID so we can clear it if needed
+                button.dataset.deepPressId = deepPressDetectorId;
+            }
+            
+            function handleButtonRelease(buttonIndex, button) {
+                // Clear any pending deep press detection
+                clearTimeout(button.dataset.deepPressId);
+                system.buttonStates[buttonIndex] = 0;
+                button.classList.remove('pressed-shallow', 'pressed-deep', 'deep-press-progress', 'active');
+            }
+            
+            function handleCancel() {
+                log("Input cancelled by user");
+                
+                // Provide haptic feedback if available
+                if (window.navigator && window.navigator.vibrate) {
+                    window.navigator.vibrate(150);
+                }
+                
+                resetSystem();
+            }
+            
+            function setSystemState(newState) {
+                const oldState = system.state;
+                system.state = newState;
+                log(`State change: ${oldState} → ${newState}`);
+                
+                // Only reset LEDs if we're not in a success state
+                if (!elements.successLed.classList.contains('active')) {
+                    resetLeds();
+                } else if (newState === STATE.IDLE) {
+                    // Just reset the status and error LEDs during success
+                    elements.statusLed.className = 'led blue';
+                    elements.errorLed.className = 'led red';
+                }
+                
+                switch (newState) {
+                    case STATE.IDLE:
+                        if (!elements.successLed.classList.contains('active')) {
+                            startIdleLedBlink();
+                        }
+                        break;
+                    case STATE.INPUT_ACTIVE:
+                        elements.statusLed.classList.add('fast-blink');
+                        break;
+                    case STATE.CONFIRMATION:
+                        elements.statusLed.classList.add('active');
+                        break;
+                    case STATE.LOCKOUT:
+                        elements.errorLed.classList.add('active');
+                        setTimeout(() => {
+                            if (system.state === STATE.LOCKOUT) {
+                                setSystemState(STATE.INPUT_ACTIVE);
+                            }
+                        }, CONFIG.LOCKOUT_DURATION);
+                        break;
+                    case STATE.SECURITY_LOCKOUT:
+                        elements.errorLed.classList.add('active');
+                        log("SECURITY LOCKOUT - Too many failed attempts");
+                        setTimeout(() => {
+                            if (system.state === STATE.SECURITY_LOCKOUT) {
+                                system.failedAttempts = 0;
+                                setSystemState(STATE.IDLE);
+                            }
+                        }, CONFIG.SECURITY_LOCKOUT);
+                        break;
+                }
+            }
+            
+            function resetLeds() {
+                elements.statusLed.className = 'led blue';
+                elements.errorLed.className = 'led red';
+                elements.successLed.className = 'led green';
+            }
+            
+            function startIdleLedBlink() {
+                elements.statusLed.classList.add('blink');
+            }
+            
+            function startInputTimeout() {
+                // Clear any existing timeout
+                if (system.timeoutId) clearTimeout(system.timeoutId);
+                
+                // Set new timeout
+                system.timeoutId = setTimeout(() => {
+                    if (system.state === STATE.INPUT_ACTIVE) {
+                        log("Input timeout. Returning to IDLE state.");
+                        resetSystem();
+                    }
+                }, CONFIG.INPUT_TIMEOUT);
+            }
+            
+            function updateNibbleDisplay() {
+                log(`Current nibble value: ${system.currentSum}`);
+            }
+            
+            function confirmSum() {
+                if (system.currentSum === 0) {
+                    log("Invalid input: Sum value can't be zero");
+                    return;
+                }
+                
+                // Add current sum to code buffer
+                system.codeBuffer.push(system.currentSum);
+                log(`Sum confirmed: ${system.currentSum}`);
+                updateCodeDisplay();
+                
+                // Reset current sum for next input
+                system.currentSum = 0;
+                elements.currentValueDisplay.textContent = system.currentSum;
+                
+                // Transition to CONFIRMATION state
+                setSystemState(STATE.CONFIRMATION);
+                
+                // Flash blue LED to indicate successful confirmation
+                elements.statusLed.classList.add('active');
+                setTimeout(() => {
+                    elements.statusLed.classList.remove('active');
+                }, 200);
+                
+                // Check if the code is complete
+                if (system.codeBuffer.length === CONFIG.CORRECT_CODE.length) {
+                    validateCode();
+                } else {
+                    // Not complete yet, prepare for next sum
+                    setSystemState(STATE.LOCKOUT);
+                }
+            }
+            
+            function validateCode() {
+                // Compare code buffer with stored code
+                const isMatch = arraysEqual(system.codeBuffer, CONFIG.CORRECT_CODE);
+                
+                if (isMatch) {
+                    log("Code CORRECT! Access granted.");
+                    // First change state, then activate success LED
+                    setSystemState(STATE.IDLE); 
+                    elements.successLed.classList.add('active');
+                    system.failedAttempts = 0;
+                    
+                    // Simulate door unlock
+                    setTimeout(() => {
+                        elements.successLed.classList.remove('active');
+                        resetSystem();
+                    }, CONFIG.SUCCESS_UNLOCK_TIME);
+                } else {
+                    log("Code INCORRECT! Access denied.");
+                    system.failedAttempts++;
+                    log(`Failed attempts: ${system.failedAttempts}/${CONFIG.MAX_FAILED_ATTEMPTS}`);
+                    
+                    if (system.failedAttempts >= CONFIG.MAX_FAILED_ATTEMPTS) {
+                        setSystemState(STATE.SECURITY_LOCKOUT);
+                    } else {
+                        // Flash red LED then reset
+                        flashRedLed(5000, resetSystem);
+                    }
+                }
+            }
+            
+            function flashRedLed(duration, callback) {
+                const interval = 500; // Flash every 500ms
+                const endTime = Date.now() + duration;
+                
+                const flash = setInterval(() => {
+                    elements.errorLed.classList.toggle('active');
+                    if (Date.now() >= endTime) {
+                        clearInterval(flash);
+                        elements.errorLed.classList.remove('active');
+                        if (callback) callback();
+                    }
+                }, interval);
+            }
+            
+            function resetSystem() {
+                // Reset system variables
+                system.currentSum = 0;
+                system.codeBuffer = [];
+                updateCodeDisplay();
+                clearTimeout(system.timeoutId);
+                
+                // Only reset to IDLE if not in success state
+                if (!elements.successLed.classList.contains('active')) {
+                    setSystemState(STATE.IDLE);
+                }
+            }
+            
+            function updateCodeDisplay() {
+                // Update the digital display
+                elements.digits.forEach((digit, index) => {
+                    digit.textContent = index < system.codeBuffer.length ? system.codeBuffer[index] : '-';
+                });
+            }
+            
+            function log(message) {
+                const time = new Date().toLocaleTimeString();
+                const logEntry = document.createElement('p');
+                logEntry.textContent = `[${time}] ${message}`;
+                elements.statusDisplay.appendChild(logEntry);
+                elements.statusDisplay.scrollTop = elements.statusDisplay.scrollHeight;
+            }
+            
+            function arraysEqual(a, b) {
+                if (a.length !== b.length) return false;
+                return a.every((val, idx) => val === b[idx]);
+            }
+            
+            // Initialize the system
+            initialize();
+        })();
+    </script>
+</body>
+</html> 
