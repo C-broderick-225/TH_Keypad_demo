@@ -54,7 +54,7 @@
             background-color: var(--container-bg);
             border-radius: 15px;
             padding: var(--container-padding);
-            width: 320px;
+            width: 380px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.3);
             position: relative;
         }
@@ -75,16 +75,23 @@
         
         .keypad {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: var(--keypad-gap);
-            margin-bottom: 30px;
+            grid-template-areas:
+                ". top ."
+                "left . right"
+                ". bottom .";
+            gap: 5px;
+            margin-bottom: 60px;
+            width: 300px;
+            margin-left: auto;
+            margin-right: auto;
         }
         
         .button {
-            height: var(--button-height);
+            height: 100px;
+            width: 100px;
             background-color: var(--button-bg);
             border: none;
-            border-radius: var(--border-radius);
+            border-radius: 20px;
             color: white;
             font-size: 24px;
             cursor: pointer;
@@ -93,6 +100,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            transform: rotate(45deg);
+        }
+        
+        .button span {
+            transform: rotate(-45deg);
         }
         
         .button:hover {
@@ -100,10 +112,15 @@
         }
         
         .button:active, .button.pressed {
-            transform: translateY(2px);
+            transform: rotate(45deg) translateY(2px);
             background-color: var(--button-active);
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
+        
+        #btn1 { grid-area: top; }
+        #btn3 { grid-area: right; }
+        #btn2 { grid-area: left; }
+        #btn4 { grid-area: bottom; }
         
         /* LED indicators */
         .leds {
@@ -213,7 +230,7 @@
             padding: 20px;
             border-radius: 10px;
             margin-top: 20px;
-            width: 320px;
+            width: 380px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
         
@@ -280,7 +297,7 @@
             
             .container, .instructions {
                 width: 90%;
-                max-width: 350px;
+                max-width: 400px;
                 padding: 15px;
             }
             
@@ -394,10 +411,10 @@
         </div>
         
         <div class="keypad no-select">
-            <button class="button" id="btn1" data-value="1">1</button>
-            <button class="button" id="btn2" data-value="2">2</button>
-            <button class="button" id="btn3" data-value="3">3</button>
-            <button class="button" id="btn4" data-value="4">4</button>
+            <button class="button" id="btn1" data-value="1"><span>1</span></button>
+            <button class="button" id="btn3" data-value="3"><span>3</span></button>
+            <button class="button" id="btn2" data-value="2"><span>2</span></button>
+            <button class="button" id="btn4" data-value="4"><span>4</span></button>
         </div>
         
         <button class="cancel-button" id="btnCancel">CANCEL</button>
