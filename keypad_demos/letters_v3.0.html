@@ -201,6 +201,20 @@
             }
         }
         
+        .led.green.blink { animation: blink-green 1s infinite; }
+        .led.green.fast-blink { animation: blink-green 0.3s infinite; }
+        
+        @keyframes blink-green {
+            0%, 100% { 
+                background-color: var(--led-green-inactive);
+                box-shadow: none;
+            }
+            50% { 
+                background-color: var(--led-green-active);
+                box-shadow: 0 0 10px var(--led-green-active);
+            }
+        }
+        
         .status {
             background-color: var(--display-bg);
             color: var(--success-text);
@@ -361,16 +375,12 @@
         
         <div class="leds">
             <div>
-                <span>Status LED</span>
-                <div class="led blue" id="statusLed" title="Status LED"></div>
-            </div>
-            <div>
                 <span>Error LED</span>
                 <div class="led red" id="errorLed" title="Error LED"></div>
             </div>
             <div>
-                <span>Success LED</span>
-                <div class="led green" id="successLed" title="Success LED"></div>
+                <span>Status/Success LED</span>
+                <div class="led green" id="successLed" title="Status & Success LED"></div>
             </div>
         </div>
         
@@ -438,7 +448,6 @@
             // DOM Elements
             const elements = {
                 buttons: Array.from(document.querySelectorAll('.button')),
-                statusLed: document.getElementById('statusLed'),
                 errorLed: document.getElementById('errorLed'),
                 successLed: document.getElementById('successLed'),
                 statusDisplay: document.getElementById('status'),
@@ -522,6 +531,9 @@
                 document.body.classList.add('force-dark');
                 log("Forced dark mode enabled");
                 log("RELEASE POLICY: Input registered only on button release");
+                
+                // Update to reflect LED changes
+                log("Green LED now shows system status and success");
             }
             
             function handleButtonPress(buttonIndex, button) {
@@ -641,27 +653,16 @@
                 system.systemState = newState;
                 log(`State change: ${oldState} → ${newState}`);
                 
-                // Only reset LEDs if we're not in a success state
-                if (!(elements.successLed.classList.contains('active'))) {
-                    // Update LEDs based on state
-                    elements.statusLed.className = 'led blue';
-                    elements.errorLed.className = 'led red';
-                    elements.successLed.className = 'led green';
-                } else if (newState === STATE.IDLE) {
-                    // Just reset the status and error LEDs during success
-                    elements.statusLed.className = 'led blue';
-                    elements.errorLed.className = 'led red';
-                }
+                // Reset LEDs based on state
+                elements.errorLed.className = 'led red';
+                elements.successLed.className = 'led green';
                 
                 switch (newState) {
                     case STATE.IDLE:
-                        // Only start blinking if not in success state
-                        if (!elements.successLed.classList.contains('active')) {
-                            startIdleLedBlink();
-                        }
+                        startIdleLedBlink();
                         break;
                     case STATE.INPUT_ACTIVE:
-                        elements.statusLed.classList.add('fast-blink');
+                        elements.successLed.classList.add('fast-blink');
                         break;
                     case STATE.LOCKOUT:
                         elements.errorLed.classList.add('active');
@@ -685,7 +686,7 @@
             }
             
             function startIdleLedBlink() {
-                elements.statusLed.classList.add('blink');
+                elements.successLed.classList.add('blink');
             }
             
             function startInputTimeout() {
@@ -712,15 +713,16 @@
                 
                 if (isMatch) {
                     log("Code CORRECT! Access granted.");
-                    // First change state, then activate success LED
-                    setSystemState(STATE.IDLE); 
-                    elements.successLed.classList.add('active');
+                    // Set success state with solid green LED
+                    elements.successLed.className = 'led green active';
+                    system.systemState = STATE.IDLE; // Change state without resetting LED
                     system.failedAttempts = 0;
                     
-                    // Simulate door unlock
+                    // Simulate door unlock with delayed return to normal state
                     setTimeout(() => {
-                        elements.successLed.classList.remove('active');
-                        resetSystem();
+                        // Explicitly reset system AND the LED state
+                        elements.successLed.className = 'led green';
+                        resetSystem(true); // Pass true to force reset regardless of LED state
                     }, CONFIG.SUCCESS_UNLOCK_TIME);
                 } else {
                     log("Code INCORRECT! Access denied.");
@@ -749,7 +751,7 @@
                 }, interval);
             }
             
-            function resetSystem() {
+            function resetSystem(forceReset = false) {
                 // Reset system variables
                 system.activeButtons = [];
                 system.pendingButtons = [];
@@ -760,7 +762,7 @@
                 clearTimeout(system.timeoutId);
                 
                 // Only reset to IDLE if not in success state or if explicitly forcing reset
-                if (!elements.successLed.classList.contains('active')) {
+                if (forceReset || !elements.successLed.classList.contains('active')) {
                     setSystemState(STATE.IDLE);
                 }
             }
