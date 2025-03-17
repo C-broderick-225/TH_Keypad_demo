@@ -6,31 +6,24 @@
     <title>Key Pad Security PIN System Demo</title>
     <style>
         :root {
-            /* Color variables */
-            --bg-color: #f0f0f0;
-            --container-bg: #333;
-            --button-bg: #444;
-            --button-hover: #555;
-            --button-active: #666;
-            --display-bg: #222;
+            /* Core colors */
+            --bg-color: #1a1a1a;
+            --container-bg: #2d2d2d;
+            --button-bg: #3a3a3a;
+            --button-hover: #4a4a4a;
+            --button-active: #555;
+            --display-bg: #262626;
             --text-color: #e0e0e0;
             --success-color: #4CAF50;
             --error-color: #F44336;
-            --status-color: #2196F3;
             --cancel-color: #d32f2f;
             
-            /* Dark mode colors */
-            --dark-bg: #1a1a1a;
-            --dark-container: #2d2d2d;
-            --dark-button: #3a3a3a;
-            --dark-button-hover: #4a4a4a;
-            --dark-display: #262626;
-            
-            /* Spacing and sizing */
+            /* Sizing & spacing */
+            --container-width: 380px;
             --container-padding: 30px;
             --button-height: 80px;
-            --keypad-gap: 20px;
             --border-radius: 10px;
+            --keypad-gap: 20px;
         }
 
         * {
@@ -54,12 +47,11 @@
             background-color: var(--container-bg);
             border-radius: 15px;
             padding: var(--container-padding);
-            width: 380px;
+            width: var(--container-width);
             box-shadow: 0 10px 25px rgba(0,0,0,0.3);
             position: relative;
         }
         
-        /* No-select utility class */
         .no-select {
             -webkit-touch-callout: none;
             -webkit-user-select: none;
@@ -67,12 +59,13 @@
             touch-action: manipulation;
         }
         
-        .title {
-            color: #fff;
+        h1, h2 {
+            color: var(--text-color);
             text-align: center;
             margin-bottom: 20px;
         }
         
+        /* Keypad layout */
         .keypad {
             display: grid;
             grid-template-areas:
@@ -112,14 +105,14 @@
         }
         
         .button:active, .button.pressed {
-            transform: rotate(45deg) translateY(2px);
+            transform: rotate(15deg) translateY(2px);
             background-color: var(--button-active);
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
         
         #btn1 { grid-area: top; }
-        #btn3 { grid-area: right; }
         #btn2 { grid-area: left; }
+        #btn3 { grid-area: right; }
         #btn4 { grid-area: bottom; }
         
         /* LED indicators */
@@ -147,8 +140,6 @@
             margin-bottom: 5px;
             font-size: 14px;
             height: 20px;
-            display: flex;
-            align-items: center;
         }
         
         .led {
@@ -163,10 +154,6 @@
             margin: 0 auto;
             padding: 0;
             overflow: hidden;
-            min-width: 24px;
-            min-height: 24px;
-            max-width: 24px;
-            max-height: 24px;
         }
         
         .led::after {
@@ -182,15 +169,8 @@
         
         .led.red { background-color: #553333; }
         .led.green { background-color: #335533; }
-        
         .led.red.active { background-color: var(--error-color); box-shadow: 0 0 10px var(--error-color); }
         .led.green.active { background-color: var(--success-color); box-shadow: 0 0 10px var(--success-color); }
-        
-        .led.red.blink { animation: blink-red 1s infinite; }
-        .led.red.fast-blink { animation: blink-red 0.3s infinite; }
-        
-        .led.green.blink { animation: blink-green 1s infinite; }
-        .led.green.fast-blink { animation: blink-green 0.3s infinite; }
         
         @keyframes blink-red {
             0%, 100% { background-color: #553333; box-shadow: none; }
@@ -202,27 +182,16 @@
             50% { background-color: var(--success-color); box-shadow: 0 0 10px var(--success-color); }
         }
         
-        /* Status display */
-        .status {
-            background-color: var(--display-bg);
-            color: #99ff99;
-            font-family: monospace;
-            padding: 15px;
-            border-radius: 5px;
-            height: 150px;
-            overflow-y: auto;
-            margin-bottom: 20px;
-        }
-        
-        .status p {
-            margin: 5px 0;
-        }
+        .led.red.blink { animation: blink-red 1s infinite; }
+        .led.red.fast-blink { animation: blink-red 0.3s infinite; }
+        .led.green.blink { animation: blink-green 1s infinite; }
+        .led.green.fast-blink { animation: blink-green 0.3s infinite; }
         
         /* PIN display */
         .pin-display {
             display: flex;
             justify-content: center;
-            margin-bottom: 20px;
+            margin-bottom: 60px;
             background-color: var(--display-bg);
             padding: 10px;
             border-radius: 5px;
@@ -242,19 +211,20 @@
             font-size: 20px;
         }
         
-        /* Instructions container */
-        .instructions {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 20px;
-            width: 380px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        /* Status display */
+        .status {
+            background-color: var(--display-bg);
+            color: #99ff99;
+            font-family: monospace;
+            padding: 15px;
+            border-radius: 5px;
+            height: 150px;
+            overflow-y: auto;
+            margin-bottom: 20px;
         }
         
-        .instructions h3 {
-            margin-top: 0;
-            color: #333;
+        .status p {
+            margin: 5px 0;
         }
         
         /* Cancel button */
@@ -295,7 +265,7 @@
             cursor: pointer;
             box-shadow: 0 5px 10px rgba(0,0,0,0.2);
             transition: all 0.15s ease;
-            z-index: 100; /* Ensure it appears above other elements */
+            z-index: 100;
         }
         
         .back-button:hover {
@@ -307,7 +277,23 @@
             background-color: var(--button-active);
         }
         
-        /* Mobile optimizations */
+        /* Instructions */
+        .instructions {
+            background-color: var(--container-bg);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            width: var(--container-width);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            color: var(--text-color);
+        }
+        
+        .instructions h3 {
+            margin-top: 0;
+            color: var(--text-color);
+        }
+        
+        /* Mobile styles */
         @media (max-width: 768px) {
             body {
                 padding: 10px;
@@ -324,7 +310,8 @@
             }
             
             .button {
-                height: 100px;  /* Larger touch targets */
+                height: 80px;
+                width: 80px;
             }
             
             h1 {
@@ -332,92 +319,34 @@
             }
         }
         
-        /* Dark mode styles */
-        @media (prefers-color-scheme: dark) {
-            body {
-                background-color: var(--dark-bg);
-                color: var(--text-color);
-            }
-
-            .container {
-                background-color: var(--dark-container);
-            }
-
-            .button {
-                background-color: var(--dark-button);
-            }
-
-            .button:hover {
-                background-color: var(--dark-button-hover);
-            }
-
-            .instructions {
-                background-color: var(--dark-container);
-                color: var(--text-color);
-            }
-
-            .instructions h3 {
-                color: #fff;
-            }
-
-            .pin-digit {
-                background-color: #404040;
-                color: #7fff7f;
-            }
-
-            .status {
-                background-color: var(--dark-display);
-            }
-        }
-
-        /* Forced dark mode class */
-        body.force-dark {
-            background-color: var(--dark-bg) !important;
-            color: var(--text-color) !important;
-        }
-        
-        body.force-dark .container {
-            background-color: var(--dark-container) !important;
-        }
-        
-        body.force-dark .button {
-            background-color: var(--dark-button) !important;
-            color: #fff !important;
-        }
-        
-        body.force-dark .instructions {
-            background-color: var(--dark-container) !important;
-            color: var(--text-color) !important;
-        }
-        
-        body.force-dark .instructions h3 {
-            color: #fff !important;
+        #mobileInstructions {
+            margin-top: 10px; 
+            padding: 10px; 
+            background-color: #4e4e4c; 
+            border-radius: 5px;
         }
     </style>
 </head>
 <body>
     <h1>PIN Demo</h1>
     
-    <!-- Move the back button here, outside the container -->
     <button class="back-button" onclick="window.location.href='/TH_Keypad_demo/'">Back</button>
     
     <div class="container no-select">
-       
-        
         <div>
             <h2>PIN: 132423</h2>
         </div>
+        
         <div class="leds">
             <div class="led-container">
-                <span class="led-label">Error LED</span>
-                <div class="led red" id="errorLed" title="Error LED"></div>
+                <span class="led-label">Error</span>
+                <div class="led red" id="errorLed" title="Error"></div>
             </div>
             <div class="led-container">
-                <span class="led-label">Status/Success LED</span>
-                <div class="led green" id="successLed" title="Status/Success LED"></div>
+                <span class="led-label">Status/Success</span>
+                <div class="led green" id="successLed" title="Status/Success"></div>
             </div>
         </div>
-
         
         <div class="pin-display">
             <div class="pin-digit" id="digit1">-</div>
@@ -430,8 +359,8 @@
         
         <div class="keypad no-select">
             <button class="button" id="btn1" data-value="1"><span>1</span></button>
-            <button class="button" id="btn3" data-value="3"><span>3</span></button>
             <button class="button" id="btn2" data-value="2"><span>2</span></button>
+            <button class="button" id="btn3" data-value="3"><span>3</span></button>
             <button class="button" id="btn4" data-value="4"><span>4</span></button>
         </div>
         
@@ -445,7 +374,7 @@
         <p><strong>Click/Tap:</strong> Press a button to enter a digit in the PIN.</p>
         <p><strong>Correct code:</strong> 1, 3, 2, 4, 2, 3</p>
         <p><strong>Watch the LEDs for system status feedback!</strong></p>
-        <div id="mobileInstructions" style="display: none; margin-top: 10px; padding: 10px; background-color: #4e4e4c; border-radius: 5px;">
+        <div id="mobileInstructions" style="display: none;">
             <p><strong>Mobile users:</strong> Tap buttons to enter your PIN code.</p>
             <p>If your phone has vibration enabled, you'll feel a vibration when a button is pressed.</p>
         </div>
@@ -454,13 +383,12 @@
     <script>
         // System configuration
         const CONFIG = {
-            debounceTime: 50,
-            inputTimeout: 10000,      // 10 seconds
-            lockoutDuration: 200,     // milliseconds
-            securityLockout: 60000,   // 1 minute
-            successUnlockTime: 5000,  // 5 seconds
-            maxCodeLength: 8,
-            maxFailedAttempts: 3
+            DEBOUNCE_TIME: 50,
+            INPUT_TIMEOUT: 10000,
+            LOCKOUT_DURATION: 200,
+            SECURITY_LOCKOUT: 60000,
+            SUCCESS_UNLOCK_TIME: 5000,
+            MAX_FAILED_ATTEMPTS: 3
         };
         
         // System states
@@ -471,7 +399,7 @@
             SECURITY_LOCKOUT: 'SECURITY_LOCKOUT'
         };
         
-        // Pin validation code
+        // Security settings
         const SECURITY = {
             storedCode: [1, 3, 2, 4, 2, 3],
             codeBuffer: [],
@@ -501,8 +429,6 @@
             log("System initialized");
             setSystemState(STATE.IDLE);
             startIdleLedBlink();
-            
-            // Set up button event listeners with delegation
             setupButtonListeners();
             
             // Check if on mobile device
@@ -510,16 +436,13 @@
                 elements.mobileInstructions.style.display = 'block';
             }
             
-            // Force dark mode
-            document.body.classList.add('force-dark');
-            log("Forced dark mode enabled");
+            log("Dark mode enabled");
         }
         
         // Set up all button listeners
         function setupButtonListeners() {
             // Numeric buttons
             elements.buttons.forEach(button => {
-                // Use event delegation for efficiency
                 button.addEventListener('click', handleButtonClick);
                 button.addEventListener('touchend', handleButtonTouch);
                 button.addEventListener('selectstart', e => e.preventDefault());
@@ -533,13 +456,12 @@
             });
         }
         
-        // Handle button click events
+        // Handle button events
         function handleButtonClick(e) {
             const buttonValue = parseInt(this.dataset.value);
             handleButtonPress(buttonValue, this);
         }
         
-        // Handle button touch events for mobile
         function handleButtonTouch(e) {
             e.preventDefault();
             const buttonValue = parseInt(this.dataset.value);
@@ -616,7 +538,7 @@
                         if (system.state === STATE.LOCKOUT) {
                             resetSystem();
                         }
-                    }, CONFIG.lockoutDuration);
+                    }, CONFIG.LOCKOUT_DURATION);
                     break;
                     
                 case STATE.SECURITY_LOCKOUT:
@@ -627,35 +549,33 @@
                             SECURITY.failedAttempts = 0;
                             setSystemState(STATE.IDLE);
                         }
-                    }, CONFIG.securityLockout);
+                    }, CONFIG.SECURITY_LOCKOUT);
                     break;
             }
         }
         
-        // Start the idle LED blinking
+        // LED management functions
         function startIdleLedBlink() {
             elements.successLed.classList.add('blink');
         }
         
-        // Start the input timeout
+        // Input timeout management
         function startInputTimeout() {
-            // Clear any existing timeout
             if (system.timeoutId) clearTimeout(system.timeoutId);
             
-            // Set new timeout
             system.timeoutId = setTimeout(() => {
                 if (system.state === STATE.INPUT_ACTIVE) {
                     log("Input timeout. Returning to IDLE state.");
                     resetSystem();
                 }
-            }, CONFIG.inputTimeout);
+            }, CONFIG.INPUT_TIMEOUT);
         }
         
         // Update the PIN display
         function updatePinDisplay() {
             elements.digits.forEach((digit, index) => {
                 if (index < SECURITY.codeBuffer.length && index < SECURITY.storedCode.length) {
-                    digit.textContent = SECURITY.codeBuffer[index]; // Show actual digit
+                    digit.textContent = SECURITY.codeBuffer[index];
                 } else {
                     digit.textContent = '-';
                 }
@@ -673,53 +593,46 @@
             }
         }
         
-        // Handle successful code entry
+        // Code validation outcomes
         function handleSuccessfulCodeEntry() {
             log("Code CORRECT! Access granted.");
+            setSystemState(STATE.IDLE);
             
-            // First change state, then activate success LED
-            setSystemState(STATE.IDLE); 
-            
-            // Ensure LED has no blinking animations before making it solid
             elements.successLed.classList.remove('blink', 'fast-blink');
             elements.successLed.className = 'led green active';
             
             SECURITY.failedAttempts = 0;
             
-            // Simulate door unlock
             setTimeout(() => {
                 elements.successLed.classList.remove('active');
                 resetSystem();
-            }, CONFIG.successUnlockTime);
+            }, CONFIG.SUCCESS_UNLOCK_TIME);
         }
         
-        // Handle failed code entry
         function handleFailedCodeEntry() {
             log("Code INCORRECT! Access denied.");
             SECURITY.failedAttempts++;
-            log(`Failed attempts: ${SECURITY.failedAttempts}/${CONFIG.maxFailedAttempts}`);
+            log(`Failed attempts: ${SECURITY.failedAttempts}/${CONFIG.MAX_FAILED_ATTEMPTS}`);
             
-            if (SECURITY.failedAttempts >= CONFIG.maxFailedAttempts) {
+            if (SECURITY.failedAttempts >= CONFIG.MAX_FAILED_ATTEMPTS) {
                 setSystemState(STATE.SECURITY_LOCKOUT);
             } else {
-                // Flash red LED
                 flashRedLed(5000, resetSystem);
             }
         }
         
         // Flash the red LED
         function flashRedLed(duration, callback) {
-            const interval = 500; // Flash every 500ms
+            const interval = 500;
             const endTime = Date.now() + duration;
             
-            // Immediately ensure the green LED is off
             elements.successLed.className = 'led green';
             
             const flash = setInterval(() => {
-                elements.errorLed.classList.toggle('active'); // Toggle LED state
+                elements.errorLed.classList.toggle('active');
                 if (Date.now() >= endTime) {
                     clearInterval(flash);
-                    elements.errorLed.classList.remove('active'); // Ensure LED is off
+                    elements.errorLed.classList.remove('active');
                     if (callback) callback();
                 }
             }, interval);
@@ -727,12 +640,10 @@
         
         // Reset the system
         function resetSystem() {
-            // Reset code buffer
             SECURITY.codeBuffer = [];
             updatePinDisplay();
             clearTimeout(system.timeoutId);
             
-            // Only reset to IDLE if not in success state or if explicitly forcing reset
             if (!elements.successLed.classList.contains('active')) {
                 setSystemState(STATE.IDLE);
             }
