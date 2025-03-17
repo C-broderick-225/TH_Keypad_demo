@@ -100,30 +100,48 @@
         
         .leds {
             display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
+            justify-content: space-evenly;
+            margin-bottom: 20px;
+            padding: 0 30px;
+            align-items: center;
         }
         
         .leds div {
             display: flex;
             flex-direction: column;
             align-items: center;
-
+            justify-content: flex-end;
+            margin: 10px;
+            flex: 1;
+            text-align: center;
+            height: 60px;
         }
         
         .leds span {
             color: #e0e0e0;
             margin-bottom: 5px;
             font-size: 14px;
+            height: 20px;
+            display: flex;
+            align-items: center;
         }
         
         .led {
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
             background-color: var(--container-bg);
             border: 2px solid rgba(255,255,255,0.2);
             position: relative;
+            box-sizing: content-box;
+            display: block;
+            margin: 0 auto;
+            padding: 0;
+            overflow: hidden;
+            min-width: 24px;
+            min-height: 24px;
+            max-width: 24px;
+            max-height: 24px;
         }
         
         .led::after {
