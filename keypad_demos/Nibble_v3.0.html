@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Key Pad Security System Demo v1.1</title>
+    <style>
+        :root {
+            --bg-color: #f0f0f0;
+            --container-bg: #333;
+            --button-bg: #444;
+            --button-hover: #555;
+            --button-active: #666;
+            --button-deep: #777;
+            --text-color: #fff;
+            --status-bg: #222;
+            --status-text: #99ff99;
+            --digit-bg: #333;
+            --digit-text: #0f0;
+            --instructions-bg: #fff;
+            --instructions-text: #333;
+            --cancel-bg: #d32f2f;
+            --cancel-hover: #b71c1c;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            touch-action: manipulation;
+            color: var(--text-color);
+        }
+        
+        .container {
+            background-color: var(--container-bg);
+            border-radius: 15px;
+            padding: 30px;
+            width: 320px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        
+        .title {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .keypad {
+            display: grid;
+            grid-template-areas:
+                ". top ."
+                "left . right"
+                ". bottom .";
+            gap: 5px;
+            margin-bottom: 60px;
+            width: 300px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .button {
+            height: 100px;
+            width: 100px;
+            background-color: var(--button-bg);
+            border: none;
+            color: var(--text-color);
+            font-size: 22px;
+            cursor: pointer;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+            transition: all 0.1s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            -webkit-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
+            transform: rotate(45deg);
+            border-radius: 20px;
+        }
+        
+        .button:hover { background-color: var(--button-hover); }
+        .button:active, .button.pressed-shallow {
+            transform: translateY(2px);
+            background-color: var(--button-active);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        
+        .button span {
+            transform: rotate(-45deg);
+        }
+        
+        #btn1 { grid-area: top; }
+        #btn2 { grid-area: right; }
+        #btn3 { grid-area: left; }
+        #btn4 { grid-area: bottom; }
+        
+        .leds {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .leds div {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+        }
+        
+        .leds span {
+            color: #e0e0e0;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .led {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: var(--container-bg);
+            border: 2px solid rgba(255,255,255,0.2);
+            position: relative;
+        }
+        
+        .led::after {
+            content: "";
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: rgba(255,255,255,0.3);
+        }
+        
+        .led.blue { background-color: #334455; }
+        .led.red { background-color: #553333; }
+        .led.green { background-color: #335533; }
+        
+        .led.blue.active { background-color: #2196F3; box-shadow: 0 0 10px #2196F3; }
+        .led.red.active { background-color: #F44336; box-shadow: 0 0 10px #F44336; }
+        .led.green.active { background-color: #4CAF50; box-shadow: 0 0 10px #4CAF50; }
+        
+        .led.blue.blink { animation: blink-blue 1s infinite; }
+        .led.blue.fast-blink { animation: blink-blue 0.3s infinite; }
+        
+        .led.green.blink { animation: blink-green 1s infinite; }
+        .led.green.fast-blink { animation: blink-green 0.3s infinite; }
+        
+        @keyframes blink-blue {
+            0%, 100% { background-color: #334455; box-shadow: none; }
+            50% { background-color: #2196F3; box-shadow: 0 0 10px #2196F3; }
+        }
+        
+        @keyframes blink-green {
+            0%, 100% { background-color: #335533; box-shadow: none; }
+            50% { background-color: #4CAF50; box-shadow: 0 0 10px #4CAF50; }
+        }
+        
+        .status {
+            background-color: var(--status-bg);
+            color: var(--status-text);
+            font-family: monospace;
+            padding: 15px;
+            border-radius: 5px;
+            height: 150px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        
+        .status p { margin: 5px 0; }
+        
+        .nibble-display {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 60px;
+            background-color: var(--status-bg);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .digit {
+            width: 30px;
+            height: 40px;
+            background-color: var(--digit-bg);
+            color: var(--digit-text);
+            border-radius: 3px;
+            margin: 0 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: monospace;
+            font-size: 20px;
+        }
+        
+        .instructions {
+            background-color: var(--instructions-bg);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            width: 320px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            color: var(--instructions-text);
+        }
+        
+        .current-value-display {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        /* Cancel button */
+        .cancel-button {
+            margin: 0 auto 20px;
+            height: 40px;
+            background-color: #d32f2f;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+            transition: all 0.15s ease;
+            width: 30%;
+            display: block;
+        }
+        
+        .cancel-button:hover { background-color: var(--cancel-hover); }
+        .cancel-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        
+        .back-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: var(--button-bg);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+            transition: all 0.1s;
+        }
+        
+        .back-button:hover { background-color: var(--button-hover); }
+        .back-button:active {
+            transform: translateY(2px);
+            background-color: var(--button-active);
+        }
+        
+        /* Mobile optimization */
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            
+            .container {
+                width: 90%;
+                max-width: 350px;
+                padding: 15px;
+            }
+            
+            .keypad { gap: 15px; }
+            .button { height: 100px; }
+            h1 { font-size: 1.5rem; }
+            
+            .instructions {
+                width: 90%;
+                max-width: 350px;
+            }
+        }
+        
+        /* Dark mode */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #1a1a1a;
+                --container-bg: #2d2d2d;
+                --button-bg: #3a3a3a;
+                --button-hover: #4a4a4a;
+                --text-color: #e0e0e0;
+                --status-bg: #262626;
+                --status-text: #90ee90;
+                --digit-bg: #404040;
+                --digit-text: #7fff7f;
+                --instructions-bg: #2d2d2d;
+                --instructions-text: #fff;
+            }
+        }
+        
+        /* Manual dark mode override */
+        body.force-dark {
+            --bg-color: #1a1a1a;
+            --container-bg: #2d2d2d;
+            --button-bg: #3a3a3a;
+            --button-hover: #4a4a4a;
+            --text-color: #e0e0e0;
+            --status-bg: #262626;
+            --status-text: #90ee90;
+            --digit-bg: #404040;
+            --digit-text: #7fff7f;
+            --instructions-bg: #2d2d2d;
+            --instructions-text: #fff;
+        }
+    </style>
+</head>
+<body>
+    <h1>Nibble Demo</h1>
+    
+    <div class="container">
+        <div>
+            <h2>PIN: 3,10,7,8</h2>
+        </div>
+        <div class="current-value-display">
+            <h3>Current Value: <span id="currentValue">0</span></h3>
+        </div>
+
+        <div class="leds">
+            <div>
+                <span>Error LED</span>
+                <div class="led red" id="errorLed" title="Error LED"></div>
+            </div>
+            <div>
+                <span>Status/Success LED</span>
+                <div class="led green" id="statusLed" title="Status/Success LED"></div>
+            </div>
+        </div>
+
+            
+        <div class="nibble-display">
+            <div class="digit" id="digit1">-</div>
+            <div class="digit" id="digit2">-</div>
+            <div class="digit" id="digit3">-</div>
+            <div class="digit" id="digit4">-</div>
+        </div>
+        
+        <div class="keypad">
+            <button class="button" id="btn1" data-bit="0" data-value="1"><span>1</span></button>
+            <button class="button" id="btn2" data-bit="1" data-value="4"><span>4</span></button>
+            <button class="button" id="btn3" data-bit="2" data-value="2"><span>2</span></button>
+            <button class="button" id="btn4" data-bit="3" data-value="8"><span>8</span></button>
+        </div>
+        
+        <button class="cancel-button" id="btnCancel">CANCEL</button>
+        
+        <div class="status" id="status"></div>
+        <button class="back-button" onclick="window.location.href='/TH_Keypad_demo/'">Back</button>
+    </div>
+    
+    <div class="instructions">
+        <h3>How to Use:</h3>
+        <p><strong>Click/Tap:</strong> Press buttons to add their values together. Release to confirm the sum.</p>
+        <p><strong>Example:</strong> Press and hold buttons 2 and 3, then release to enter 6.</p>
+        <p><strong>Correct code:</strong> 3, 10, 7, 8</p>
+        <p> - Press buttons 1 and 3 together, release to enter 3</p>
+        <p> - Press buttons 2 and 3 together, release to enter 10</p>
+        <p> - Press button 1, 2 and 3 together, release to enter 7</p>
+        <p> - Press button 4, release to enter 8</p>
+        <p><strong>Watch the LEDs for system status feedback!</strong></p>
+    </div>
+    
+    <script>
+        (() => {
+            // Constants
+            const CONFIG = {
+                DEBOUNCE_TIME: 50,
+                CONFIRMATION_THRESHOLD: 500,
+                INPUT_TIMEOUT: 10000,
+                LOCKOUT_DURATION: 200,
+                SECURITY_LOCKOUT: 60000,
+                SUCCESS_UNLOCK_TIME: 5000,
+                MAX_CODE_LENGTH: 4,
+                MAX_FAILED_ATTEMPTS: 3,
+                CORRECT_CODE: [3, 10, 7, 8]
+            };
+            
+            // System States
+            const STATE = {
+                IDLE: 'IDLE',
+                INPUT_ACTIVE: 'INPUT_ACTIVE',
+                CONFIRMATION: 'CONFIRMATION',
+                LOCKOUT: 'LOCKOUT',
+                SECURITY_LOCKOUT: 'SECURITY_LOCKOUT'
+            };
+            
+            // DOM Elements
+            const elements = {
+                buttons: Array.from(document.querySelectorAll('.button')),
+                errorLed: document.getElementById('errorLed'),
+                statusLed: document.getElementById('statusLed'),
+                statusDisplay: document.getElementById('status'),
+                digits: Array.from(document.querySelectorAll('.digit')),
+                cancelButton: document.getElementById('btnCancel'),
+                currentValueDisplay: document.getElementById('currentValue')
+            };
+            
+            // System state
+            const system = {
+                currentSum: 0,
+                buttonStates: [0, 0, 0, 0],
+                buttonPressStartTimes: [0, 0, 0, 0],
+                codeBuffer: [],
+                failedAttempts: 0,
+                inputStartTime: 0,
+                state: STATE.IDLE,
+                timeoutId: null
+            };
+            
+            // Initialize
+            function initialize() {
+                log("System initialized");
+                setSystemState(STATE.IDLE);
+                startIdleLedBlink();
+                
+                // Set up button event listeners
+                elements.buttons.forEach(setupButtonEvents);
+                
+                // Set up cancel button event listener
+                elements.cancelButton.addEventListener('click', handleCancel);
+                
+                // Show mobile instructions if on a touch device
+                if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+                    document.getElementById('mobileInstructions').style.display = 'block';
+                }
+                
+                // Force dark mode
+                document.body.classList.add('force-dark');
+                log("Forced dark mode enabled");
+            }
+            
+            // Set up button event listeners
+            function setupButtonEvents(button) {
+                const buttonIndex = parseInt(button.id.slice(3)) - 1;
+                
+                // Common handler for both mouse and touch events
+                const handlePress = (e) => {
+                    if (e.type.startsWith('touch')) e.preventDefault();
+                    handleButtonPress(buttonIndex, button);
+                };
+                
+                const handleRelease = (e) => {
+                    if (e.type.startsWith('touch')) e.preventDefault();
+                    handleButtonRelease(buttonIndex, button);
+                };
+                
+                // Mouse Events
+                button.addEventListener('mousedown', handlePress);
+                button.addEventListener('mouseup', handleRelease);
+                button.addEventListener('mouseleave', handleRelease);
+                
+                // Touch Events
+                button.addEventListener('touchstart', handlePress);
+                button.addEventListener('touchend', handleRelease);
+                button.addEventListener('touchcancel', handleRelease);
+                
+                // Prevent text selection
+                button.addEventListener('selectstart', e => e.preventDefault());
+            }
+            
+            function handleButtonPress(buttonIndex, button) {
+                if (system.state === STATE.LOCKOUT || system.state === STATE.SECURITY_LOCKOUT) return;
+                
+                // Visual feedback only
+                button.classList.add('pressed-shallow');
+                
+                // Accumulate the sum of button presses
+                const bitValue = parseInt(button.dataset.value);
+                system.currentSum += bitValue;
+                updateNibbleDisplay();
+                
+                // Update the current value display
+                elements.currentValueDisplay.textContent = system.currentSum;
+
+                if (system.state === STATE.IDLE) {
+                    setSystemState(STATE.INPUT_ACTIVE);
+                    system.inputStartTime = Date.now();
+                    startInputTimeout();
+                }
+            }
+            
+            function handleButtonRelease(buttonIndex, button) {
+                button.classList.remove('pressed-shallow');
+                
+                // Only confirm the sum if we're in INPUT_ACTIVE state
+                if (system.state === STATE.INPUT_ACTIVE && system.currentSum > 0) {
+                    confirmSum();
+                }
+            }
+            
+            function handleCancel() {
+                log("Input cancelled by user");
+                
+                // Provide haptic feedback if available
+                if (window.navigator && window.navigator.vibrate) {
+                    window.navigator.vibrate(150);
+                }
+                
+                resetSystem();
+            }
+            
+            function setSystemState(newState) {
+                const oldState = system.state;
+                system.state = newState;
+                log(`State change: ${oldState} → ${newState}`);
+                
+                // Reset LEDs
+                elements.errorLed.className = 'led red';
+                
+                // Only reset the status LED if it's not showing success
+                if (!elements.statusLed.classList.contains('active')) {
+                    elements.statusLed.className = 'led green';
+                }
+                
+                switch (newState) {
+                    case STATE.IDLE:
+                        if (!elements.statusLed.classList.contains('active')) {
+                            startIdleLedBlink();
+                        }
+                        break;
+                    case STATE.INPUT_ACTIVE:
+                        elements.statusLed.classList.add('fast-blink');
+                        break;
+                    case STATE.CONFIRMATION:
+                        elements.statusLed.classList.add('active');
+                        break;
+                    case STATE.LOCKOUT:
+                        elements.errorLed.classList.add('active');
+                        setTimeout(() => {
+                            if (system.state === STATE.LOCKOUT) {
+                                setSystemState(STATE.INPUT_ACTIVE);
+                            }
+                        }, CONFIG.LOCKOUT_DURATION);
+                        break;
+                    case STATE.SECURITY_LOCKOUT:
+                        elements.errorLed.classList.add('active');
+                        log("SECURITY LOCKOUT - Too many failed attempts");
+                        setTimeout(() => {
+                            if (system.state === STATE.SECURITY_LOCKOUT) {
+                                system.failedAttempts = 0;
+                                setSystemState(STATE.IDLE);
+                            }
+                        }, CONFIG.SECURITY_LOCKOUT);
+                        break;
+                }
+            }
+            
+            function startIdleLedBlink() {
+                elements.statusLed.classList.add('blink');
+            }
+            
+            function startInputTimeout() {
+                // Clear any existing timeout
+                if (system.timeoutId) clearTimeout(system.timeoutId);
+                
+                // Set new timeout
+                system.timeoutId = setTimeout(() => {
+                    if (system.state === STATE.INPUT_ACTIVE) {
+                        log("Input timeout. Returning to IDLE state.");
+                        resetSystem();
+                    }
+                }, CONFIG.INPUT_TIMEOUT);
+            }
+            
+            function updateNibbleDisplay() {
+                log(`Current nibble value: ${system.currentSum}`);
+            }
+            
+            function confirmSum() {
+                if (system.currentSum === 0) {
+                    log("Invalid input: Sum value can't be zero");
+                    return;
+                }
+                
+                // Add current sum to code buffer
+                system.codeBuffer.push(system.currentSum);
+                log(`Sum confirmed: ${system.currentSum}`);
+                updateCodeDisplay();
+                
+                // Reset current sum for next input
+                system.currentSum = 0;
+                elements.currentValueDisplay.textContent = system.currentSum;
+                
+                // Transition to CONFIRMATION state
+                setSystemState(STATE.CONFIRMATION);
+                
+                // Flash green LED to indicate successful confirmation
+                elements.statusLed.classList.add('active');
+                setTimeout(() => {
+                    elements.statusLed.classList.remove('active');
+                }, 200);
+                
+                // Check if the code is complete
+                if (system.codeBuffer.length === CONFIG.CORRECT_CODE.length) {
+                    validateCode();
+                } else {
+                    // Not complete yet, prepare for next sum
+                    setSystemState(STATE.LOCKOUT);
+                }
+            }
+            
+            function validateCode() {
+                // Compare code buffer with stored code
+                const isMatch = arraysEqual(system.codeBuffer, CONFIG.CORRECT_CODE);
+                
+                if (isMatch) {
+                    log("Code CORRECT! Access granted.");
+                    // First change state, then activate success LED
+                    setSystemState(STATE.IDLE); 
+                    elements.statusLed.classList.add('active');
+                    system.failedAttempts = 0;
+                    
+                    // Simulate door unlock
+                    setTimeout(() => {
+                        log("Success period ended. Resetting system.");
+                        elements.statusLed.classList.remove('active');
+                        resetSystem();
+                    }, CONFIG.SUCCESS_UNLOCK_TIME);
+                } else {
+                    log("Code INCORRECT! Access denied.");
+                    system.failedAttempts++;
+                    log(`Failed attempts: ${system.failedAttempts}/${CONFIG.MAX_FAILED_ATTEMPTS}`);
+                    
+                    if (system.failedAttempts >= CONFIG.MAX_FAILED_ATTEMPTS) {
+                        setSystemState(STATE.SECURITY_LOCKOUT);
+                    } else {
+                        // Flash red LED then reset
+                        flashRedLed(5000, resetSystem);
+                    }
+                }
+            }
+            
+            function flashRedLed(duration, callback) {
+                const interval = 500; // Flash every 500ms
+                const endTime = Date.now() + duration;
+                
+                const flash = setInterval(() => {
+                    elements.errorLed.classList.toggle('active');
+                    if (Date.now() >= endTime) {
+                        clearInterval(flash);
+                        elements.errorLed.classList.remove('active');
+                        if (callback) callback();
+                    }
+                }, interval);
+            }
+            
+            function resetSystem() {
+                // Reset system variables
+                system.currentSum = 0;
+                system.codeBuffer = [];
+                updateCodeDisplay();
+                clearTimeout(system.timeoutId);
+                
+                // Only reset to IDLE if not in success state
+                if (!elements.statusLed.classList.contains('active')) {
+                    setSystemState(STATE.IDLE);
+                }
+            }
+            
+            function updateCodeDisplay() {
+                // Update the digital display
+                elements.digits.forEach((digit, index) => {
+                    digit.textContent = index < system.codeBuffer.length ? system.codeBuffer[index] : '-';
+                });
+            }
+            
+            function log(message) {
+                const time = new Date().toLocaleTimeString();
+                const logEntry = document.createElement('p');
+                logEntry.textContent = `[${time}] ${message}`;
+                elements.statusDisplay.appendChild(logEntry);
+                elements.statusDisplay.scrollTop = elements.statusDisplay.scrollHeight;
+            }
+            
+            function arraysEqual(a, b) {
+                if (a.length !== b.length) return false;
+                return a.every((val, idx) => val === b[idx]);
+            }
+            
+            // Initialize the system
+            initialize();
+        })();
+    </script>
+</body>
+</html> 
