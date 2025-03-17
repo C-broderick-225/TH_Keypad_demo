@@ -6,21 +6,45 @@
     <title>Key Pad Security System Demo v1.1</title>
     <style>
         :root {
+            /* Color variables */
             --bg-color: #f0f0f0;
             --container-bg: #333;
             --button-bg: #444;
             --button-hover: #555;
             --button-active: #666;
-            --button-deep: #777;
-            --text-color: #fff;
-            --status-bg: #222;
-            --status-text: #99ff99;
-            --digit-bg: #333;
-            --digit-text: #0f0;
-            --instructions-bg: #fff;
-            --instructions-text: #333;
-            --cancel-bg: #d32f2f;
+            --display-bg: #222;
+            --text-color: #e0e0e0;
+            --display-text: #0f0;
+            
+            --success-color: #4CAF50;
+            --error-color: #F44336;
+            --cancel-color: #d32f2f;
             --cancel-hover: #b71c1c;
+            
+            /* Dark mode colors */
+            --dark-bg: #1a1a1a;
+            --dark-container: #2d2d2d;
+            --dark-button: #3a3a3a;
+            --dark-button-hover: #4a4a4a;
+            --dark-display: #262626;
+            
+            /* Spacing and sizing */
+            --container-padding: 30px;
+            --border-radius: 10px;
+            --container-width: 320px;
+            
+            /* LED colors */
+            --led-red-inactive: #553333;
+            --led-green-inactive: #335533;
+            --led-red-active: #F44336;
+            --led-green-active: #4CAF50;
+            
+            /* Status colors */
+            --success-text: #99ff99;
+            
+            /* Dimensions */
+            --container-width: 320px;
+            --border-radius: 10px;
         }
         
         body {
@@ -37,9 +61,9 @@
         
         .container {
             background-color: var(--container-bg);
-            border-radius: 15px;
+            border-radius: var(--border-radius);
             padding: 30px;
-            width: 320px;
+            width: var(--container-width);
             box-shadow: 0 10px 25px rgba(0,0,0,0.3);
         }
         
@@ -82,9 +106,11 @@
             border-radius: 20px;
         }
         
-        .button:hover { background-color: var(--button-hover); }
-        .button:active, .button.pressed-shallow {
-            transform: translateY(2px);
+        .button:hover { background-color: var(--button-hover); 
+        }
+        
+        .button:active, .button.pressed {
+            transform: rotate(15deg) translateY(2px);
             background-color: var(--button-active);
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
@@ -106,7 +132,7 @@
             align-items: center;
         }
         
-        .leds div {
+        .led-container {
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -117,7 +143,7 @@
             height: 60px;
         }
         
-        .leds span {
+        .led-label {
             color: #e0e0e0;
             margin-bottom: 5px;
             font-size: 14px;
@@ -155,33 +181,37 @@
             background-color: rgba(255,255,255,0.3);
         }
         
-        .led.blue { background-color: #334455; }
         .led.red { background-color: #553333; }
         .led.green { background-color: #335533; }
         
-        .led.blue.active { background-color: #2196F3; box-shadow: 0 0 10px #2196F3; }
-        .led.red.active { background-color: #F44336; box-shadow: 0 0 10px #F44336; }
-        .led.green.active { background-color: #4CAF50; box-shadow: 0 0 10px #4CAF50; }
+        .led.red.active { 
+            background-color: var(--error-color);
+            box-shadow: 0 0 10px var(--error-color);
+        }
+        .led.green.active { 
+            background-color: var(--success-color);
+            box-shadow: 0 0 10px var(--success-color);
+        }
         
-        .led.blue.blink { animation: blink-blue 1s infinite; }
-        .led.blue.fast-blink { animation: blink-blue 0.3s infinite; }
-        
+        .led.red.blink { animation: blink-red 1s infinite; }
         .led.green.blink { animation: blink-green 1s infinite; }
+        
+        .led.red.fast-blink { animation: blink-red 0.3s infinite; }
         .led.green.fast-blink { animation: blink-green 0.3s infinite; }
         
-        @keyframes blink-blue {
-            0%, 100% { background-color: #334455; box-shadow: none; }
-            50% { background-color: #2196F3; box-shadow: 0 0 10px #2196F3; }
+        @keyframes blink-red {
+            0%, 100% { background-color: #553333; box-shadow: none; }
+            50% { background-color: var(--error-color); box-shadow: 0 0 10px var(--error-color); }
         }
         
         @keyframes blink-green {
             0%, 100% { background-color: #335533; box-shadow: none; }
-            50% { background-color: #4CAF50; box-shadow: 0 0 10px #4CAF50; }
+            50% { background-color: var(--success-color); box-shadow: 0 0 10px var(--success-color); }
         }
         
         .status {
-            background-color: var(--status-bg);
-            color: var(--status-text);
+            background-color: var(--display-bg);
+            color: var(--display-text);
             font-family: monospace;
             padding: 15px;
             border-radius: 5px;
@@ -196,7 +226,7 @@
             display: flex;
             justify-content: center;
             margin-bottom: 60px;
-            background-color: var(--status-bg);
+            background-color: var(--display-bg);
             padding: 10px;
             border-radius: 5px;
         }
@@ -204,25 +234,25 @@
         .digit {
             width: 30px;
             height: 40px;
-            background-color: var(--digit-bg);
-            color: var(--digit-text);
+            background-color: #333;
+            color: var(--display-text);
             border-radius: 3px;
             margin: 0 5px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: monospace;
+            font-family: 'Consolas', monospace;
             font-size: 20px;
         }
         
         .instructions {
-            background-color: var(--instructions-bg);
+            background-color: var(--container-bg);
             padding: 20px;
             border-radius: 10px;
             margin-top: 20px;
-            width: 320px;
+            width: var(--container-width);
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            color: var(--instructions-text);
+            color: var(--display-text);
         }
         
         .current-value-display {
@@ -234,7 +264,7 @@
         .cancel-button {
             margin: 0 auto 20px;
             height: 40px;
-            background-color: #d32f2f;
+            background-color: var(--cancel-color);
             border: none;
             border-radius: 10px;
             color: white;
@@ -276,7 +306,7 @@
         @media (max-width: 768px) {
             body { padding: 10px; }
             
-            .container {
+            .container, .instructions {
                 width: 90%;
                 max-width: 350px;
                 padding: 15px;
@@ -285,48 +315,45 @@
             .keypad { gap: 15px; }
             .button { height: 100px; }
             h1 { font-size: 1.5rem; }
-            
-            .instructions {
-                width: 90%;
-                max-width: 350px;
-            }
         }
         
         /* Dark mode */
         @media (prefers-color-scheme: dark) {
             :root {
-                --bg-color: #1a1a1a;
-                --container-bg: #2d2d2d;
-                --button-bg: #3a3a3a;
-                --button-hover: #4a4a4a;
+                --bg-color: var(--dark-bg);
+                --container-bg: var(--dark-container);
+                --button-bg: var(--dark-button);
+                --button-hover: var(--dark-button-hover);
+                --display-bg: var(--dark-display);
                 --text-color: #e0e0e0;
-                --status-bg: #262626;
-                --status-text: #90ee90;
-                --digit-bg: #404040;
-                --digit-text: #7fff7f;
-                --instructions-bg: #2d2d2d;
-                --instructions-text: #fff;
+            }
+            
+            .instructions {
+                background-color: var(--dark-container);
+                color: var(--text-color);
             }
         }
         
         /* Manual dark mode override */
         body.force-dark {
-            --bg-color: #1a1a1a;
-            --container-bg: #2d2d2d;
-            --button-bg: #3a3a3a;
-            --button-hover: #4a4a4a;
+            --bg-color: var(--dark-bg);
+            --container-bg: var(--dark-container);
+            --button-bg: var(--dark-button);
+            --button-hover: var(--dark-button-hover);
+            --display-bg: var(--dark-display);
             --text-color: #e0e0e0;
-            --status-bg: #262626;
-            --status-text: #90ee90;
-            --digit-bg: #404040;
-            --digit-text: #7fff7f;
-            --instructions-bg: #2d2d2d;
-            --instructions-text: #fff;
+        }
+        
+        body.force-dark .instructions {
+            background-color: var(--dark-container);
+            color: var(--text-color);
         }
     </style>
 </head>
 <body>
     <h1>Nibble Demo</h1>
+    
+    <button class="back-button" onclick="window.location.href='/TH_Keypad_demo/'">Back</button>
     
     <div class="container">
         <div>
@@ -337,12 +364,12 @@
         </div>
 
         <div class="leds">
-            <div>
-                <span>Error LED</span>
+            <div class="led-container">
+                <span class="led-label">Error</span>
                 <div class="led red" id="errorLed" title="Error LED"></div>
             </div>
-            <div>
-                <span>Status/Success LED</span>
+            <div class="led-container">
+                <span class="led-label">Status/Success</span>
                 <div class="led green" id="statusLed" title="Status/Success LED"></div>
             </div>
         </div>
@@ -365,7 +392,6 @@
         <button class="cancel-button" id="btnCancel">CANCEL</button>
         
         <div class="status" id="status"></div>
-        <button class="back-button" onclick="window.location.href='/TH_Keypad_demo/'">Back</button>
     </div>
     
     <div class="instructions">
@@ -482,7 +508,7 @@
                 if (system.state === STATE.LOCKOUT || system.state === STATE.SECURITY_LOCKOUT) return;
                 
                 // Visual feedback only
-                button.classList.add('pressed-shallow');
+                button.classList.add('pressed');
                 
                 // Accumulate the sum of button presses
                 const bitValue = parseInt(button.dataset.value);
@@ -497,10 +523,12 @@
                     system.inputStartTime = Date.now();
                     startInputTimeout();
                 }
+                
+                provideHapticFeedback(100);
             }
             
             function handleButtonRelease(buttonIndex, button) {
-                button.classList.remove('pressed-shallow');
+                button.classList.remove('pressed');
                 
                 // Only confirm the sum if we're in INPUT_ACTIVE state
                 if (system.state === STATE.INPUT_ACTIVE && system.currentSum > 0) {
@@ -512,9 +540,7 @@
                 log("Input cancelled by user");
                 
                 // Provide haptic feedback if available
-                if (window.navigator && window.navigator.vibrate) {
-                    window.navigator.vibrate(150);
-                }
+                provideHapticFeedback(150);
                 
                 resetSystem();
             }
@@ -695,6 +721,12 @@
             function arraysEqual(a, b) {
                 if (a.length !== b.length) return false;
                 return a.every((val, idx) => val === b[idx]);
+            }
+            
+            function provideHapticFeedback(duration) {
+                if (window.navigator && window.navigator.vibrate) {
+                    window.navigator.vibrate(duration);
+                }
             }
             
             // Initialize the system
