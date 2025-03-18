@@ -90,22 +90,34 @@
             cursor: pointer;
             box-shadow: 0 5px 10px rgba(0,0,0,0.2);
             transition: all 0.15s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
             transform: rotate(45deg);
+            position: relative;
+            padding: 0;
+            overflow: hidden;
         }
         
         .button span {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            text-align: center;
             transform: rotate(-45deg);
         }
-
+        
+        .button span:first-child {
+            top: 35%;
+            font-size: 24px;
+        }
+        
         .button .values {
-            transform: rotate(-45deg);
+            position: absolute;
+            bottom: 25%;
             font-size: 14px;
-            margin-top: 5px;
             color: #888;
+            width: 100%;
+            text-align: center;
+            transform: rotate(-45deg) translateX(10px);
+            left: 0;
         }
         
         .button:hover {
