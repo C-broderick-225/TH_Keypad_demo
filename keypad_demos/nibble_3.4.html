@@ -693,8 +693,13 @@
                 if (system.codeBuffer.length === CONFIG.CORRECT_CODE.length) {
                     validateCode();
                 } else {
-                    // Not complete yet, prepare for next sum
-                    setSystemState(STATE.LOCKOUT);
+                    // Not complete yet, prepare for next digit input
+                    // Use a brief timeout without triggering error LED
+                    setTimeout(() => {
+                        if (system.state === STATE.CONFIRMATION) {
+                            setSystemState(STATE.INPUT_ACTIVE);
+                        }
+                    }, CONFIG.LOCKOUT_DURATION);
                 }
             }
             
