@@ -630,6 +630,8 @@
                         elements.successLed.classList.add('fast-blink');
                         break;
                     case STATE.LOCKOUT:
+                        // Turn off success LED and activate error LED
+                        elements.successLed.className = 'led green';
                         elements.errorLed.classList.add('active');
                         setTimeout(() => {
                             if (system.state === STATE.LOCKOUT) {
@@ -638,6 +640,8 @@
                         }, CONFIG.LOCKOUT_DURATION);
                         break;
                     case STATE.SECURITY_LOCKOUT:
+                        // Turn off success LED and activate error LED
+                        elements.successLed.className = 'led green';
                         elements.errorLed.classList.add('active');
                         log("SECURITY LOCKOUT - Too many failed attempts");
                         setTimeout(() => {
@@ -690,26 +694,20 @@
                     system.failedAttempts++;
                     log(`Failed attempts: ${system.failedAttempts}/${CONFIG.MAX_FAILED_ATTEMPTS}`);
                     
+                    // Ensure success LED is off and error LED is on (not blinking)
+                    elements.successLed.className = 'led green';
+                    elements.errorLed.className = 'led red active';
+                    
                     if (system.failedAttempts >= CONFIG.MAX_FAILED_ATTEMPTS) {
                         setSystemState(STATE.SECURITY_LOCKOUT);
                     } else {
-                        flashRedLed(5000, resetSystem);
+                        // Keep error LED on for 5 seconds then reset
+                        setTimeout(() => {
+                            elements.errorLed.className = 'led red';
+                            resetSystem();
+                        }, 5000);
                     }
                 }
-            }
-            
-            function flashRedLed(duration, callback) {
-                const interval = 500;
-                const endTime = Date.now() + duration;
-                
-                const flash = setInterval(() => {
-                    elements.errorLed.classList.toggle('active');
-                    if (Date.now() >= endTime) {
-                        clearInterval(flash);
-                        elements.errorLed.classList.remove('active');
-                        if (callback) callback();
-                    }
-                }, interval);
             }
             
             // Reset system state
