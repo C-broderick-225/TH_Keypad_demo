@@ -580,7 +580,7 @@
                 updateNibbleDisplay();
                 
                 // Update the current value display
-                elements.currentValueDisplay.textContent = system.currentSum;
+                elements.currentValueDisplay.textContent = system.currentSum === 10 ? "0" : system.currentSum;
 
                 if (system.state === STATE.IDLE) {
                     setSystemState(STATE.INPUT_ACTIVE);
@@ -719,13 +719,21 @@
                     if (system.failedAttempts >= CONFIG.MAX_FAILED_ATTEMPTS) {
                         setSystemState(STATE.SECURITY_LOCKOUT);
                     } else {
-                        flashErrorLed(5000, resetSystem);
+                        // Turn on red LED (no blinking) and ensure green LED is off
+                        system.errorLED.setState(LED_STATE.ON);
+                        system.statusLED.setState(LED_STATE.OFF);
+                        
+                        // Reset system after a delay
+                        setTimeout(() => {
+                            resetSystem();
+                        }, 5000);
                     }
                 }
             }
             
             function flashErrorLed(duration, callback) {
-                system.errorLED.setState(LED_STATE.BLINK);
+                system.errorLED.setState(LED_STATE.ON); // Changed from BLINK to ON
+                system.statusLED.setState(LED_STATE.OFF); // Explicitly turn off status LED
                 setTimeout(() => {
                     system.errorLED.setState(LED_STATE.OFF);
                     if (callback) callback();
@@ -747,7 +755,10 @@
             function updateCodeDisplay() {
                 // Update the digital display
                 elements.digits.forEach((digit, index) => {
-                    digit.textContent = index < system.codeBuffer.length ? system.codeBuffer[index] : '-';
+                    let displayValue = index < system.codeBuffer.length ? system.codeBuffer[index] : '-';
+                    // Show '0' instead of '10'
+                    if (displayValue === 10) displayValue = "0";
+                    digit.textContent = displayValue;
                 });
             }
             
