@@ -746,10 +746,8 @@
                 updateCodeDisplay();
                 clearTimeout(system.timeoutId);
                 
-                // Only reset to IDLE if not in success state
-                if (system.state !== STATE.SUCCESS) {
-                    setSystemState(STATE.IDLE);
-                }
+                // Always reset to IDLE state
+                setSystemState(STATE.IDLE);
             }
             
             function updateCodeDisplay() {
