@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Key Pad Security System Demo v3.5 (Three Keys)</title>
+    <style>
+        :root {
+            /* Color variables */
+            --bg-color: #f0f0f0;
+            --container-bg: #333;
+            --button-bg: #444;
+            --button-hover: #555;
+            --button-active: #666;
+            --display-bg: #222;
+            --text-color: #e0e0e0;
+            --display-text: #0f0;
+            
+            --success-color: #4CAF50;
+            --error-color: #F44336;
+            --cancel-color: #d32f2f;
+            --cancel-hover: #b71c1c;
+            
+            /* Dark mode colors */
+            --dark-bg: #1a1a1a;
+            --dark-container: #2d2d2d;
+            --dark-button: #3a3a3a;
+            --dark-button-hover: #4a4a4a;
+            --dark-display: #262626;
+            
+            /* Spacing and sizing */
+            --container-padding: 30px;
+            --border-radius: 10px;
+            --container-width: 320px;
+            
+            /* LED colors */
+            --led-red-inactive: #553333;
+            --led-green-inactive: #335533;
+            --led-red-active: #F44336;
+            --led-green-active: #4CAF50;
+            
+            /* Status colors */
+            --success-text: #99ff99;
+            
+            /* Dimensions */
+            --container-width: 320px;
+            --border-radius: 10px;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            touch-action: manipulation;
+            color: var(--text-color);
+        }
+        
+        .container {
+            background-color: var(--container-bg);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            width: var(--container-width);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        
+        .title {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .keypad {
+            display: grid;
+            grid-template-areas:
+                "top"
+                "middle"
+                "bottom";
+            gap: 15px;
+            margin-bottom: 60px;
+            width: 300px;
+            margin-left: auto;
+            margin-right: auto;
+            justify-content: center;
+        }
+        
+        .button {
+            height: 100px;
+            width: 100px;
+            background-color: var(--button-bg);
+            border: none;
+            color: var(--text-color);
+            font-size: 22px;
+            cursor: pointer;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+            transition: all 0.1s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            -webkit-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
+            transform: rotate(45deg);
+            border-radius: 20px;
+        }
+        
+        .button:hover { 
+            background-color: var(--button-hover); 
+        }
+        
+        .button:active, .button.pressed {
+            transform: rotate(15deg) translateY(2px);
+            background-color: var(--button-active);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        
+        .button span {
+            transform: rotate(-45deg);
+        }
+        
+        #btn1 { grid-area: top; }
+        #btn2 { grid-area: middle; }
+        #btn3 { grid-area: bottom; }
+        
+        .leds {
+            display: flex;
+            justify-content: space-evenly;
+            margin-bottom: 20px;
+            padding: 0 30px;
+            align-items: center;
+        }
+        
+        .led-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            margin: 10px;
+            flex: 1;
+            text-align: center;
+            height: 60px;
+        }
+        
+        .led-label {
+            color: #e0e0e0;
+            margin-bottom: 5px;
+            font-size: 14px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .led {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: var(--container-bg);
+            border: 2px solid rgba(255,255,255,0.2);
+            position: relative;
+            box-sizing: content-box;
+            display: block;
+            margin: 0 auto;
+            padding: 0;
+            overflow: hidden;
+            min-width: 24px;
+            min-height: 24px;
+            max-width: 24px;
+            max-height: 24px;
+        }
+        
+        .led::after {
+            content: "";
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: rgba(255,255,255,0.3);
+        }
+        
+        .led.red { background-color: var(--led-red-inactive); }
+        .led.green { background-color: var(--led-green-inactive); }
+        
+        .led.red.active { 
+            background-color: var(--error-color);
+            box-shadow: 0 0 10px var(--error-color);
+        }
+        .led.green.active { 
+            background-color: var(--success-color);
+            box-shadow: 0 0 10px var(--success-color);
+        }
+        
+        .led.red.blink { animation: blink-red 1s infinite; }
+        .led.green.blink { animation: blink-green 1s infinite; }
+        
+        .led.red.fast-blink { animation: blink-red 0.3s infinite; }
+        .led.green.fast-blink { animation: blink-green 0.3s infinite; }
+        
+        @keyframes blink-red {
+            0%, 100% { background-color: var(--led-red-inactive); box-shadow: none; }
+            50% { background-color: var(--error-color); box-shadow: 0 0 10px var(--error-color); }
+        }
+        
+        @keyframes blink-green {
+            0%, 100% { background-color: var(--led-green-inactive); box-shadow: none; }
+            50% { background-color: var(--success-color); box-shadow: 0 0 10px var(--success-color); }
+        }
+        
+        .status {
+            background-color: var(--display-bg);
+            color: var(--display-text);
+            font-family: monospace;
+            padding: 15px;
+            border-radius: 5px;
+            height: 150px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        
+        .status p { margin: 5px 0; }
+        
+        .nibble-display {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 60px;
+            background-color: var(--display-bg);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .digit {
+            width: 30px;
+            height: 40px;
+            background-color: #333;
+            color: var(--display-text);
+            border-radius: 3px;
+            margin: 0 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Consolas', monospace;
+            font-size: 20px;
+        }
+        
+        .instructions {
+            background-color: var(--container-bg);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            width: var(--container-width);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            color: var(--display-text);
+        }
+        
+        .current-value-display {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        /* Cancel button */
+        .cancel-button {
+            margin: 0 auto 20px;
+            height: 40px;
+            background-color: var(--cancel-color);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+            transition: all 0.15s ease;
+            width: 30%;
+            display: block;
+        }
+        
+        .cancel-button:hover { background-color: var(--cancel-hover); }
+        .cancel-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        
+        .back-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: var(--button-bg);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+            transition: all 0.1s;
+        }
+        
+        .back-button:hover { background-color: var(--button-hover); }
+        .back-button:active {
+            transform: translateY(2px);
+            background-color: var(--button-active);
+        }
+        
+        /* Mobile optimization */
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            
+            .container, .instructions {
+                width: 90%;
+                max-width: 350px;
+                padding: 15px;
+            }
+            
+            .keypad { gap: 15px; }
+            .button { height: 100px; }
+            h1 { font-size: 1.5rem; }
+        }
+        
+        /* Dark mode */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: var(--dark-bg);
+                --container-bg: var(--dark-container);
+                --button-bg: var(--dark-button);
+                --button-hover: var(--dark-button-hover);
+                --display-bg: var(--dark-display);
+                --text-color: #e0e0e0;
+            }
+            
+            .instructions {
+                background-color: var(--dark-container);
+                color: var(--text-color);
+            }
+        }
+        
+        /* Manual dark mode override */
+        body.force-dark {
+            --bg-color: var(--dark-bg);
+            --container-bg: var(--dark-container);
+            --button-bg: var(--dark-button);
+            --button-hover: var(--dark-button-hover);
+            --display-bg: var(--dark-display);
+            --text-color: #e0e0e0;
+        }
+        
+        body.force-dark .instructions {
+            background-color: var(--dark-container);
+            color: var(--text-color);
+        }
+    </style>
+</head>
+<body>
+    <h1>Nibble Demo v3.5 (Three Keys)</h1>
+    
+    <button class="back-button" onclick="window.location.href='/TH_Keypad_demo/'">Back</button>
+    
+    <div class="container">
+        <div>
+            <h2>PIN: 3078</h2>
+        </div>
+        <div class="current-value-display">
+            <h3>Current Value: <span id="currentValue">0</span></h3>
+        </div>
+
+        <div class="leds">
+            <div class="led-container">
+                <span class="led-label">Error</span>
+                <div class="led red" id="errorLed" title="Error LED"></div>
+            </div>
+            <div class="led-container">
+                <span class="led-label">Status/Success</span>
+                <div class="led green" id="statusLed" title="Status/Success LED"></div>
+            </div>
+        </div>
+
+        <div class="nibble-display">
+            <div class="digit" id="digit1">-</div>
+            <div class="digit" id="digit2">-</div>
+            <div class="digit" id="digit3">-</div>
+            <div class="digit" id="digit4">-</div>
+        </div>
+        
+        <div class="keypad">
+            <button class="button" id="btn1" data-bit="0" data-value="1"><span>1</span></button>
+            <button class="button" id="btn2" data-bit="1" data-value="2"><span>2</span></button>
+            <button class="button" id="btn3" data-bit="2" data-value="4"><span>4</span></button>
+        </div>
+        
+        <button class="cancel-button" id="btnCancel">CANCEL</button>
+        
+        <div class="status" id="status"></div>
+    </div>
+    
+    <div class="instructions">
+        <h3>How to Use:</h3>
+        <p><strong>Click/Tap:</strong> Press buttons to add their values together. Release to confirm the sum.</p>
+        <p><strong>Example:</strong> Press and hold buttons 1 and 2, then release to enter 3.</p>
+        <p><strong>Correct code:</strong> 3078</p>
+        <p> - Press buttons 1 and 2 together, release to enter 3</p>
+        <p> - Press no buttons, just click/tap CANCEL, to enter 0</p>
+        <p> - Press buttons 1, 2 and 3 together, release to enter 7</p>
+        <p> - Press button 3 and button 1 together, release to enter 8</p>
+        <p><strong>Watch the LEDs for system status feedback!</strong></p>
+    </div>
+    
+    <script>
+        (() => {
+            // Constants
+            const CONFIG = {
+                DEBOUNCE_TIME: 50,
+                CONFIRMATION_THRESHOLD: 500,
+                INPUT_TIMEOUT: 10000,
+                LOCKOUT_DURATION: 200,
+                SECURITY_LOCKOUT: 60000,
+                SUCCESS_UNLOCK_TIME: 5000,
+                MAX_CODE_LENGTH: 4,
+                MAX_FAILED_ATTEMPTS: 6,
+                CORRECT_CODE: [3, 0, 7, 5]
+            };
+            
+            // LED States
+            const LED_STATE = {
+                OFF: 'off',
+                ON: 'on',
+                BLINK: 'blink',
+                FAST_BLINK: 'fast-blink'
+            };
+
+            // System States
+            const STATE = {
+                IDLE: 'IDLE',
+                INPUT_ACTIVE: 'INPUT_ACTIVE',
+                CONFIRMATION: 'CONFIRMATION',
+                LOCKOUT: 'LOCKOUT',
+                SECURITY_LOCKOUT: 'SECURITY_LOCKOUT',
+                SUCCESS: 'SUCCESS'
+            };
+            
+            // DOM Elements
+            const elements = {
+                buttons: Array.from(document.querySelectorAll('.button')),
+                errorLed: document.getElementById('errorLed'),
+                statusLed: document.getElementById('statusLed'),
+                statusDisplay: document.getElementById('status'),
+                digits: Array.from(document.querySelectorAll('.digit')),
+                cancelButton: document.getElementById('btnCancel'),
+                currentValueDisplay: document.getElementById('currentValue')
+            };
+            
+            // LED Controller
+            class LEDController {
+                constructor(ledElement, type) {
+                    this.led = ledElement;
+                    this.type = type; // 'red' or 'green'
+                    this.state = LED_STATE.OFF;
+                    this.blinkInterval = null;
+                }
+
+                setState(newState) {
+                    // Clear any existing blink intervals
+                    if (this.blinkInterval) {
+                        clearInterval(this.blinkInterval);
+                        this.blinkInterval = null;
+                    }
+
+                    // Reset classes
+                    this.led.className = `led ${this.type}`;
+                    
+                    switch (newState) {
+                        case LED_STATE.ON:
+                            this.led.classList.add('active');
+                            break;
+                        case LED_STATE.BLINK:
+                            this.startBlink(1000); // Normal blink - 1 second interval
+                            break;
+                        case LED_STATE.FAST_BLINK:
+                            this.startBlink(300); // Fast blink - 0.3 second interval
+                            break;
+                        case LED_STATE.OFF:
+                            // Base class already set
+                            break;
+                    }
+                    
+                    this.state = newState;
+                }
+
+                startBlink(interval) {
+                    this.blinkInterval = setInterval(() => {
+                        this.led.classList.toggle('active');
+                    }, interval);
+                }
+
+                getState() {
+                    return this.state;
+                }
+
+                cleanup() {
+                    if (this.blinkInterval) {
+                        clearInterval(this.blinkInterval);
+                        this.blinkInterval = null;
+                    }
+                }
+            }
+
+            // System state
+            const system = {
+                currentSum: 0,
+                buttonStates: [0, 0, 0],
+                buttonPressStartTimes: [0, 0, 0],
+                codeBuffer: [],
+                failedAttempts: 0,
+                inputStartTime: 0,
+                state: STATE.IDLE,
+                timeoutId: null,
+                errorLED: new LEDController(elements.errorLed, 'red'),
+                statusLED: new LEDController(elements.statusLed, 'green')
+            };
+            
+            // Initialize
+            function initialize() {
+                log("System initialized");
+                setSystemState(STATE.IDLE);
+                
+                // Set up button event listeners
+                elements.buttons.forEach(setupButtonEvents);
+                
+                // Set up cancel button event listener
+                elements.cancelButton.addEventListener('click', handleCancel);
+                
+                // Show mobile instructions if on a touch device
+                if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+                    document.getElementById('mobileInstructions').style.display = 'block';
+                }
+                
+                // Force dark mode
+                document.body.classList.add('force-dark');
+                log("Forced dark mode enabled");
+            }
+            
+            function setupButtonEvents(button) {
+                const buttonIndex = parseInt(button.id.slice(3)) - 1;
+                
+                // Common handler for both mouse and touch events
+                const handlePress = (e) => {
+                    if (e.type.startsWith('touch')) e.preventDefault();
+                    handleButtonPress(buttonIndex, button);
+                };
+                
+                const handleRelease = (e) => {
+                    if (e.type.startsWith('touch')) e.preventDefault();
+                    handleButtonRelease(buttonIndex, button);
+                };
+                
+                // Mouse Events
+                button.addEventListener('mousedown', handlePress);
+                button.addEventListener('mouseup', handleRelease);
+                button.addEventListener('mouseleave', handleRelease);
+                
+                // Touch Events
+                button.addEventListener('touchstart', handlePress);
+                button.addEventListener('touchend', handleRelease);
+                button.addEventListener('touchcancel', handleRelease);
+                
+                // Prevent text selection
+                button.addEventListener('selectstart', e => e.preventDefault());
+            }
+            
+            function handleButtonPress(buttonIndex, button) {
+                if (system.state === STATE.LOCKOUT || system.state === STATE.SECURITY_LOCKOUT) return;
+                
+                // Visual feedback only
+                button.classList.add('pressed');
+                
+                // Accumulate the sum of button presses
+                const bitValue = parseInt(button.dataset.value);
+                system.currentSum += bitValue;
+                updateNibbleDisplay();
+                
+                // Update the current value display
+                elements.currentValueDisplay.textContent = system.currentSum === 10 ? "0" : system.currentSum;
+
+                if (system.state === STATE.IDLE) {
+                    setSystemState(STATE.INPUT_ACTIVE);
+                    system.inputStartTime = Date.now();
+                    startInputTimeout();
+                }
+                
+                provideHapticFeedback(100);
+            }
+            
+            function handleButtonRelease(buttonIndex, button) {
+                button.classList.remove('pressed');
+                
+                // Only confirm the sum if we're in INPUT_ACTIVE state
+                if (system.state === STATE.INPUT_ACTIVE && system.currentSum > 0) {
+                    confirmSum();
+                }
+            }
+            
+            function handleCancel() {
+                // In three button mode, we'll use the cancel button to input '0'
+                if (system.state === STATE.INPUT_ACTIVE) {
+                    system.currentSum = 0;
+                    elements.currentValueDisplay.textContent = system.currentSum;
+                    confirmSum();
+                    log("Entered value: 0");
+                } else {
+                    log("Input cancelled by user");
+                    resetSystem();
+                }
+                provideHapticFeedback(150);
+            }
+            
+            function setSystemState(newState) {
+                const oldState = system.state;
+                system.state = newState;
+                log(`State change: ${oldState} → ${newState}`);
+                
+                // Update LED states based on system state
+                switch (newState) {
+                    case STATE.IDLE:
+                        system.errorLED.setState(LED_STATE.OFF);
+                        if (oldState !== STATE.SUCCESS) {
+                            system.statusLED.setState(LED_STATE.BLINK);
+                        }
+                        break;
+                    case STATE.INPUT_ACTIVE:
+                        system.errorLED.setState(LED_STATE.OFF);
+                        system.statusLED.setState(LED_STATE.FAST_BLINK);
+                        break;
+                    case STATE.CONFIRMATION:
+                        system.errorLED.setState(LED_STATE.OFF);
+                        system.statusLED.setState(LED_STATE.ON);
+                        break;
+                    case STATE.LOCKOUT:
+                        system.errorLED.setState(LED_STATE.ON);
+                        system.statusLED.setState(LED_STATE.OFF);
+                        setTimeout(() => {
+                            if (system.state === STATE.LOCKOUT) {
+                                setSystemState(STATE.INPUT_ACTIVE);
+                            }
+                        }, CONFIG.LOCKOUT_DURATION);
+                        break;
+                    case STATE.SECURITY_LOCKOUT:
+                        system.errorLED.setState(LED_STATE.ON);
+                        system.statusLED.setState(LED_STATE.OFF);
+                        log("SECURITY LOCKOUT - Too many failed attempts");
+                        setTimeout(() => {
+                            if (system.state === STATE.SECURITY_LOCKOUT) {
+                                system.failedAttempts = 0;
+                                setSystemState(STATE.IDLE);
+                            }
+                        }, CONFIG.SECURITY_LOCKOUT);
+                        break;
+                    case STATE.SUCCESS:
+                        system.errorLED.setState(LED_STATE.OFF);
+                        system.statusLED.setState(LED_STATE.ON);
+                        break;
+                }
+            }
+            
+            function startInputTimeout() {
+                // Clear any existing timeout
+                if (system.timeoutId) clearTimeout(system.timeoutId);
+                
+                // Set new timeout
+                system.timeoutId = setTimeout(() => {
+                    if (system.state === STATE.INPUT_ACTIVE) {
+                        log("Input timeout. Returning to IDLE state.");
+                        resetSystem();
+                    }
+                }, CONFIG.INPUT_TIMEOUT);
+            }
+            
+            function updateNibbleDisplay() {
+                log(`Current nibble value: ${system.currentSum}`);
+            }
+            
+            function confirmSum() {
+                if (system.state !== STATE.INPUT_ACTIVE) {
+                    return;
+                }
+                
+                // Add current sum to code buffer
+                system.codeBuffer.push(system.currentSum);
+                log(`Sum confirmed: ${system.currentSum}`);
+                updateCodeDisplay();
+                
+                // Reset current sum for next input
+                system.currentSum = 0;
+                elements.currentValueDisplay.textContent = system.currentSum;
+                
+                // Transition to CONFIRMATION state
+                setSystemState(STATE.CONFIRMATION);
+                
+                // Check if the code is complete
+                if (system.codeBuffer.length === CONFIG.CORRECT_CODE.length) {
+                    validateCode();
+                } else {
+                    // Not complete yet, prepare for next digit input
+                    // Use a brief timeout without triggering error LED
+                    setTimeout(() => {
+                        if (system.state === STATE.CONFIRMATION) {
+                            setSystemState(STATE.INPUT_ACTIVE);
+                        }
+                    }, CONFIG.LOCKOUT_DURATION);
+                }
+            }
+            
+            function validateCode() {
+                const isMatch = arraysEqual(system.codeBuffer, CONFIG.CORRECT_CODE);
+                
+                if (isMatch) {
+                    log("Code CORRECT! Access granted.");
+                    setSystemState(STATE.SUCCESS);
+                    system.failedAttempts = 0;
+                    
+                    // Keep success state for specified duration
+                    setTimeout(() => {
+                        log("Success period ended. Resetting system.");
+                        resetSystem();
+                    }, CONFIG.SUCCESS_UNLOCK_TIME);
+                } else {
+                    log("Code INCORRECT! Access denied.");
+                    system.failedAttempts++;
+                    log(`Failed attempts: ${system.failedAttempts}/${CONFIG.MAX_FAILED_ATTEMPTS}`);
+                    
+                    if (system.failedAttempts >= CONFIG.MAX_FAILED_ATTEMPTS) {
+                        setSystemState(STATE.SECURITY_LOCKOUT);
+                    } else {
+                        // Turn on red LED (no blinking) and ensure green LED is off
+                        system.errorLED.setState(LED_STATE.ON);
+                        system.statusLED.setState(LED_STATE.OFF);
+                        
+                        // Reset system after a delay
+                        setTimeout(() => {
+                            resetSystem();
+                        }, 5000);
+                    }
+                }
+            }
+            
+            function resetSystem() {
+                system.currentSum = 0;
+                system.codeBuffer = [];
+                updateCodeDisplay();
+                clearTimeout(system.timeoutId);
+                
+                // Always reset to IDLE state
+                setSystemState(STATE.IDLE);
+            }
+            
+            function updateCodeDisplay() {
+                // Update the digital display
+                elements.digits.forEach((digit, index) => {
+                    let displayValue = index < system.codeBuffer.length ? system.codeBuffer[index] : '-';
+                    // Show '0' instead of '10'
+                    if (displayValue === 10) displayValue = "0";
+                    digit.textContent = displayValue;
+                });
+            }
+            
+            function log(message) {
+                const time = new Date().toLocaleTimeString();
+                const logEntry = document.createElement('p');
+                logEntry.textContent = `[${time}] ${message}`;
+                elements.statusDisplay.appendChild(logEntry);
+                elements.statusDisplay.scrollTop = elements.statusDisplay.scrollHeight;
+            }
+            
+            function arraysEqual(a, b) {
+                if (a.length !== b.length) return false;
+                return a.every((val, idx) => val === b[idx]);
+            }
+            
+            function provideHapticFeedback(duration) {
+                if (window.navigator && window.navigator.vibrate) {
+                    window.navigator.vibrate(duration);
+                }
+            }
+            
+            // Initialize the system
+            initialize();
+        })();
+    </script>
+</body>
+</html> 
