@@ -75,9 +75,8 @@
         .keypad {
             display: grid;
             grid-template-areas:
-                "top"
-                "middle"
-                "bottom";
+                ". top ."
+                "left . right";
             gap: 15px;
             margin-bottom: 60px;
             width: 300px;
@@ -122,8 +121,8 @@
         }
         
         #btn1 { grid-area: top; }
-        #btn2 { grid-area: middle; }
-        #btn3 { grid-area: bottom; }
+        #btn2 { grid-area: left; }
+        #btn3 { grid-area: right; }
         
         .leds {
             display: flex;
@@ -358,7 +357,7 @@
     
     <div class="container">
         <div>
-            <h2>PIN: 3078</h2>
+            <h2>PIN: 3175</h2>
         </div>
         <div class="current-value-display">
             <h3>Current Value: <span id="currentValue">0</span></h3>
@@ -397,11 +396,12 @@
         <h3>How to Use:</h3>
         <p><strong>Click/Tap:</strong> Press buttons to add their values together. Release to confirm the sum.</p>
         <p><strong>Example:</strong> Press and hold buttons 1 and 2, then release to enter 3.</p>
-        <p><strong>Correct code:</strong> 3078</p>
+        <p><strong>Correct code:</strong> 3175</p>
         <p> - Press buttons 1 and 2 together, release to enter 3</p>
-        <p> - Press no buttons, just click/tap CANCEL, to enter 0</p>
+        <p> - Press button 1, release to enter 1</p>
         <p> - Press buttons 1, 2 and 3 together, release to enter 7</p>
-        <p> - Press button 3 and button 1 together, release to enter 8</p>
+        <p> - Press buttons 1 and 4 together, release to enter 5</p>
+        <p><strong>The CANCEL button only resets your current input.</strong></p>
         <p><strong>Watch the LEDs for system status feedback!</strong></p>
     </div>
     
@@ -417,7 +417,7 @@
                 SUCCESS_UNLOCK_TIME: 5000,
                 MAX_CODE_LENGTH: 4,
                 MAX_FAILED_ATTEMPTS: 6,
-                CORRECT_CODE: [3, 0, 7, 5]
+                CORRECT_CODE: [3, 1, 7, 5]
             };
             
             // LED States
@@ -600,12 +600,11 @@
             }
             
             function handleCancel() {
-                // In three button mode, we'll use the cancel button to input '0'
+                // Cancel only resets the system or current input
                 if (system.state === STATE.INPUT_ACTIVE) {
+                    log("Current input cancelled");
                     system.currentSum = 0;
                     elements.currentValueDisplay.textContent = system.currentSum;
-                    confirmSum();
-                    log("Entered value: 0");
                 } else {
                     log("Input cancelled by user");
                     resetSystem();
