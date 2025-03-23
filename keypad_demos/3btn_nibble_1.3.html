@@ -600,15 +600,11 @@
             }
             
             function handleCancel() {
-                // Cancel only resets the system or current input
-                if (system.state === STATE.INPUT_ACTIVE) {
-                    log("Current input cancelled");
-                    system.currentSum = 0;
-                    elements.currentValueDisplay.textContent = system.currentSum;
-                } else {
-                    log("Input cancelled by user");
-                    resetSystem();
-                }
+                log("Input cancelled by user");
+                // Reset current sum and system state
+                system.currentSum = 0;
+                elements.currentValueDisplay.textContent = system.currentSum;
+                resetSystem();
                 provideHapticFeedback(150);
             }
             
