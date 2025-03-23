@@ -450,9 +450,12 @@
                 "A": "A", 
                 "B": "B", 
                 "C": "C",
-                "AB": "AB", "BA": "AB", 
-                "AC": "AC", "CA": "AC", 
-                "BC": "BC", "CB": "BC",
+                "AB": "AB", 
+                "BA": "BA", 
+                "AC": "AC", 
+                "CA": "CA", 
+                "BC": "BC", 
+                "CB": "CB",
                 "ABC": "ABC", "ACB": "ABC", "BAC": "ABC", "BCA": "ABC", "CAB": "ABC", "CBA": "ABC"
             };
             
@@ -515,11 +518,10 @@
                 system.buttonStates[buttonIndex] = true;
                 button.classList.add('pressed');
                 
-                // Add to pending buttons
+                // Add to pending buttons (preserving order)
                 const buttonLetter = button.dataset.letter;
                 if (!system.pendingButtons.includes(buttonLetter)) {
                     system.pendingButtons.push(buttonLetter);
-                    system.pendingButtons.sort();
                     updatePendingButtonsDisplay();
                 }
                 
@@ -539,7 +541,7 @@
                 system.buttonStates[buttonIndex] = false;
                 button.classList.remove('pressed');
                 
-                // Move from pending to active buttons
+                // Move from pending to active buttons (preserving order)
                 const buttonLetter = button.dataset.letter;
                 const pendingIndex = system.pendingButtons.indexOf(buttonLetter);
                 
@@ -581,10 +583,31 @@
             function processButtonCombination() {
                 if (system.activeButtons.length === 0) return;
                 
-                // Form and validate the combination
-                const combination = system.activeButtons.sort().join("");
+                // Form the combination preserving order
+                const combination = system.activeButtons.join("");
                 
-                if (combination in inputMap) {
+                // Special case: If all three buttons are pressed, always return "ABC"
+                if (combination.includes("A") && combination.includes("B") && combination.includes("C") && 
+                    combination.length === 3) {
+                    log(`Registered input: ABC (3-button combination)`);
+                    
+                    // Haptic feedback
+                    if (window.navigator && window.navigator.vibrate) {
+                        window.navigator.vibrate(100);
+                    }
+                    
+                    // Add to code buffer and check status
+                    system.codeBuffer.push("ABC");
+                    updateCodeDisplay();
+                    
+                    if (system.codeBuffer.length === system.storedCode.length) {
+                        validateCode();
+                    } else {
+                        setSystemState(STATE.INPUT_ACTIVE);
+                    }
+                } 
+                // Normal case: Check in inputMap
+                else if (combination in inputMap) {
                     // Get standardized combination
                     const mappedCombination = inputMap[combination];
                     log(`Registered input: ${mappedCombination}`);
