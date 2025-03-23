@@ -334,7 +334,7 @@
 <body>
     <h1>Letters Demo - Three Buttons</h1>
     <div class="container">
-        <h2>Correct code: A, BC, AB, C</h2>
+        <h2>Correct code: A, BC, AB, ABC</h2>
         <div class="button-info">
             <div>
                 <span>Pending Inputs:</span>
@@ -384,7 +384,7 @@
         <p> - Press & release A</p>
         <p> - Press B+C together & release</p>
         <p> - Press A+B together & release</p>
-        <p> - Press & release C</p>
+        <p> - Press A+B+C together & release</p>
         <p><strong>Watch the LEDs for system status feedback!</strong></p>
         <div id="mobileInstructions">
             <p><strong>Mobile users:</strong> Any button touch shows as "pending" but will only be registered when you release it.</p>
@@ -438,7 +438,7 @@
                 buttonPressStartTimes: [0, 0, 0],
                 lastReleaseTime: 0,
                 codeBuffer: [],
-                storedCode: ["A", "BC", "AB", "C"],
+                storedCode: ["A", "BC", "AB", "ABC"],
                 failedAttempts: 0,
                 inputStartTime: 0,
                 state: STATE.IDLE,
