@@ -329,10 +329,131 @@
             border-radius: 5px;
             display: none;
         }
+
+        /* Converter styles */
+        .converter-container {
+            background-color: var(--container-bg);
+            border-radius: 15px;
+            padding: 20px;
+            width: 320px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            margin: 20px auto;
+            user-select: none;
+        }
+
+        .converter-content {
+            background-color: #444;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            color: white;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            border: none;
+            background-color: #555;
+            color: white;
+            box-sizing: border-box;
+        }
+        
+        .result {
+            background-color: #555;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            text-align: center;
+            font-size: 18px;
+            min-height: 25px;
+        }
+        
+        .conversion-table {
+            margin-top: 15px;
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .conversion-table th, .conversion-table td {
+            border: 1px solid #666;
+            padding: 5px;
+            text-align: center;
+        }
+        
+        .conversion-table th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .converter-title {
+            color: #fff;
+            margin-top: 0;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .converter-toggle {
+            background-color: var(--button-bg);
+            color: var(--text-color);
+            border: none;
+            border-radius: 5px;
+            padding: 8px 15px;
+            cursor: pointer;
+            margin: 20px auto;
+            display: block;
+        }
+        
+        .converter-toggle:hover {
+            background-color: var(--button-hover);
+        }
+        
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
     <h1>Letters Demo - Three Buttons</h1>
+    
+    <!-- Moved Converter Section here -->
+    <button id="toggleConverter" class="converter-toggle">Show Number-Letter Converter</button>
+    
+    <div id="converterSection" class="converter-container hidden">
+        <h3 class="converter-title">Number-Letter Converter Tool</h3>
+        <div class="converter-content">
+            <div class="input-group">
+                <label for="conversion-direction">Conversion Direction:</label>
+                <select id="conversion-direction">
+                    <option value="number-to-letter">Number to Letter</option>
+                    <option value="letter-to-number">Letter to Number</option>
+                </select>
+            </div>
+            
+            <div id="number-input-group" class="input-group">
+                <label for="number-input">Enter Number(s) (0-9):</label>
+                <input type="text" id="number-input" placeholder="Enter digits (e.g. 123)">
+            </div>
+            
+            <div id="letter-input-group" class="input-group" style="display: none;">
+                <label for="letter-input">Enter Letter(s) (A, B, C):</label>
+                <input type="text" id="letter-input" maxlength="3" placeholder="Enter letters (A, B, C)">
+            </div>
+            
+            <div class="result" id="result">Result will appear here</div>
+            
+        </div>
+    </div>
+    
     <div class="container">
         <h2>Correct code: A, BC, AB, ABC</h2>
         <div class="button-info">
@@ -866,6 +987,117 @@
             // Start the system
             initialize();
         })();
+
+        // Add the converter script at the end, keeping it separate from the keypad system
+        (() => {
+            // Define the conversion mappings for the converter
+            const numberToLetter = {
+                '0': 'ABC',
+                '1': 'A',
+                '2': 'B',
+                '3': 'C',
+                '4': 'AB',
+                '5': 'BA',
+                '6': 'BC',
+                '7': 'CB',
+                '8': 'CA',
+                '9': 'AC'
+            };
+            
+            // Create reverse mapping for letter to number
+            const letterToNumber = {};
+            Object.keys(numberToLetter).forEach(number => {
+                letterToNumber[numberToLetter[number]] = number;
+            });
+            
+            // Get DOM elements
+            const conversionDirection = document.getElementById('conversion-direction');
+            const numberInputGroup = document.getElementById('number-input-group');
+            const letterInputGroup = document.getElementById('letter-input-group');
+            const numberInput = document.getElementById('number-input');
+            const letterInput = document.getElementById('letter-input');
+            const result = document.getElementById('result');
+            const toggleButton = document.getElementById('toggleConverter');
+            const converterSection = document.getElementById('converterSection');
+            
+            // Toggle converter visibility
+            toggleButton.addEventListener('click', function() {
+                if (converterSection.classList.contains('hidden')) {
+                    converterSection.classList.remove('hidden');
+                    toggleButton.textContent = 'Hide Number-Letter Converter';
+                } else {
+                    converterSection.classList.add('hidden');
+                    toggleButton.textContent = 'Show Number-Letter Converter';
+                }
+            });
+            
+            // Handle conversion direction change
+            conversionDirection.addEventListener('change', function() {
+                if (this.value === 'number-to-letter') {
+                    numberInputGroup.style.display = 'block';
+                    letterInputGroup.style.display = 'none';
+                    result.textContent = 'Result will appear here';
+                    numberInput.value = '';
+                } else {
+                    numberInputGroup.style.display = 'none';
+                    letterInputGroup.style.display = 'block';
+                    result.textContent = 'Result will appear here';
+                    letterInput.value = '';
+                }
+            });
+            
+            // Handle number input
+            numberInput.addEventListener('input', function() {
+                const value = this.value;
+                
+                if (value === '') {
+                    result.textContent = 'Result will appear here';
+                    return;
+                }
+                
+                // Check if input only contains digits 0-9
+                if (!/^[0-9]+$/.test(value)) {
+                    result.textContent = 'Please enter only digits (0-9)';
+                    return;
+                }
+                
+                // Convert each digit and concatenate the results with a hyphen separator
+                let convertedText = '';
+                for (let i = 0; i < value.length; i++) {
+                    const digit = value[i];
+                    convertedText += numberToLetter[digit];
+                    // Add hyphen if not the last character
+                    if (i < value.length - 1) {
+                        convertedText += '-';
+                    }
+                }
+                
+                result.textContent = convertedText;
+            });
+            
+            // Handle letter input
+            letterInput.addEventListener('input', function() {
+                const value = this.value.toUpperCase();
+                this.value = value; // Convert to uppercase in the input field
+                
+                if (value === '') {
+                    result.textContent = 'Result will appear here';
+                    return;
+                }
+                
+                // Check if input only contains A, B, or C
+                if (!/^[ABC]+$/.test(value)) {
+                    result.textContent = 'Please use only letters A, B, and C';
+                    return;
+                }
+                
+                if (letterToNumber[value]) {
+                    result.textContent = letterToNumber[value];
+                } else {
+                    result.textContent = 'No matching number found';
+                }
+            });
+        })(); // Self-executing function to keep variables isolated
     </script>
 </body>
 </html> 
