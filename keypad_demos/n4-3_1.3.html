@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>N4-3 PIN System Demo</title>
+    <title>N3-4 PIN System Demo</title>
     <style>
         :root {
             /* Core colors */
@@ -17,6 +17,7 @@
             --success-color: #4CAF50;
             --error-color: #F44336;
             --cancel-color: #d32f2f;
+            --confirm-color: #1976D2;
             
             /* Sizing & spacing */
             --container-width: 380px;
@@ -71,8 +72,8 @@
             grid-template-areas:
                 ". top ."
                 "left . right"
-                ". bottom .";
-            gap: 5px;
+                ". . .";
+            gap: 15px;
             margin-bottom: 60px;
             width: 300px;
             margin-left: auto;
@@ -134,7 +135,6 @@
         #btn1 { grid-area: top; }
         #btn2 { grid-area: left; }
         #btn3 { grid-area: right; }
-        #btn4 { grid-area: bottom; }
         
         /* LED indicators */
         .leds {
@@ -250,7 +250,7 @@
             margin-bottom: 20px;
         }
 
-        .cancel-button {
+        .action-button {
             height: 40px;
             border: none;
             border-radius: var(--border-radius);
@@ -259,15 +259,18 @@
             cursor: pointer;
             box-shadow: 0 5px 10px rgba(0,0,0,0.2);
             transition: all 0.15s ease;
-            width: 30%;
+            width: 50%;
             background-color: var(--cancel-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .cancel-button:hover {
-            background-color: #b71c1c;
+        .action-button:hover {
+            opacity: 0.9;
         }
 
-        .cancel-button:active {
+        .action-button:active {
             transform: translateY(2px);
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
@@ -341,7 +344,7 @@
     </style>
 </head>
 <body>
-    <h1>N4-3 PIN Demo</h1>
+    <h1>N3-4 PIN Demo</h1>
     
     <button class="back-button" onclick="window.location.href='/TH_Keypad_demo/'">Back</button>
     
@@ -373,26 +376,25 @@
         </div>
         
         <div class="keypad no-select">
-            <button class="button" id="btn1" data-values="1,2,3">
+            <button class="button" id="btn1" data-values="1,2,3,4">
                 <span>1</span>
-                <span class="values">[1,2,3]</span>
+                <span class="values">[1,2,3,4]</span>
             </button>
-            <button class="button" id="btn2" data-values="4,5,6">
+            <button class="button" id="btn2" data-values="5,6,7,8">
                 <span>2</span>
-                <span class="values">[4,5,6]</span>
+                <span class="values">[5,6,7,8]</span>
             </button>
-            <button class="button" id="btn3" data-values="7,8,9">
+            <button class="button" id="btn3" data-values="9,0,*,#">
                 <span>3</span>
-                <span class="values">[7,8,9]</span>
+                <span class="values">[9,0,*,#]</span>
             </button>
-            <button class="button" id="btn4" data-values="0,*,#">
-                <span>4</span>
-                <span class="values">[0,*,#]</span>
-            </button>
+        </div>
+        <div>
+            <h2> (Single Press = Cancel, Double Press = Confirm)</h2>
         </div>
         
         <div class="action-buttons">
-            <button class="cancel-button" id="btnCancel">CANCEL</button>
+            <button class="action-button" id="actionBtn">CANCEL / CONFIRM</button>
         </div>
         
         <div class="status" id="status"></div>
@@ -402,20 +404,20 @@
         <h3>How to Use:</h3>
         <p><strong>Button Values:</strong></p>
         <ul>
-            <li>Button 1: [1, 2, 3]</li>
-            <li>Button 2: [4, 5, 6]</li>
-            <li>Button 3: [7, 8, 9]</li>
-            <li>Button 4: [0, *, #]</li>
+            <li>Button 1: [1, 2, 3, 4]</li>
+            <li>Button 2: [5, 6, 7, 8]</li>
+            <li>Button 3: [9, 0, *, #]</li>
         </ul>
         <p><strong>Example:</strong> To enter "3018", press:</p>
         <ul>
             <li>Button 1 three times (for 3)</li>
-            <li>Button 4 once (for 0)</li>
+            <li>Button 3 two times (for 0)</li>
             <li>Button 1 once (for 1)</li>
-            <li>Button 3 twice (for 8)</li>
+            <li>Button 2 four times (for 8)</li>
         </ul>
-        <p>Values are automatically confirmed after a brief pause or when switching buttons.</p>
-        <p><strong>Press CANCEL</strong> to reset the current input.</p>
+        <p>Each digit is logged automatically when you select it. After entering all 4 digits, press the CONFIRM button with a double-press.</p>
+        <p><strong>Single press</strong> of the button will cancel the current input.</p>
+        <p><strong>Double press</strong> of the button will confirm the complete PIN after all digits are entered.</p>
     </div>
     
     <script>
@@ -427,7 +429,8 @@
             SECURITY_LOCKOUT: 60000,
             SUCCESS_UNLOCK_TIME: 5000,
             MAX_FAILED_ATTEMPTS: 6,
-            CYCLE_TIMEOUT: 1500
+            CYCLE_TIMEOUT: 1500,
+            DOUBLE_PRESS_WINDOW: 300 // Window for double press in ms
         };
         
         // System states
@@ -440,10 +443,9 @@
         
         // Button values configuration
         const BUTTON_VALUES = {
-            1: ['1', '2', '3'],
-            2: ['4', '5', '6'],
-            3: ['7', '8', '9'],
-            4: ['0', '*', '#']
+            1: ['1', '2', '3', '4'],
+            2: ['5', '6', '7', '8'],
+            3: ['9', '0', '*', '#']
         };
         
         // Security settings
@@ -465,7 +467,9 @@
         const system = {
             state: STATE.IDLE,
             inputStartTime: 0,
-            timeoutId: null
+            timeoutId: null,
+            lastActionButtonPress: 0,
+            cancelTimeoutId: null
         };
         
         // DOM Elements
@@ -475,7 +479,7 @@
             successLed: document.getElementById('successLed'),
             statusDisplay: document.getElementById('status'),
             digits: Array.from(document.querySelectorAll('.pin-digit')),
-            cancelButton: document.getElementById('btnCancel'),
+            actionButton: document.getElementById('actionBtn'),
             currentValue: document.getElementById('currentValue')
         };
         
@@ -501,14 +505,8 @@
                 button.addEventListener('selectstart', e => e.preventDefault());
             });
             
-            // Cancel button
-            elements.cancelButton.addEventListener('click', () => {
-                log("Input cancelled");
-                provideHapticFeedback(150);
-                resetCurrentValue();
-                SECURITY.codeBuffer = [];
-                updatePinDisplay();
-            });
+            // Action button (Cancel/Confirm)
+            elements.actionButton.addEventListener('click', handleActionButtonClick);
         }
         
         // Handle button events
@@ -523,6 +521,64 @@
             e.stopPropagation(); // Prevent double triggering
             const buttonNumber = parseInt(this.id.replace('btn', ''));
             handleButtonPress(buttonNumber, this);
+        }
+        
+        // Handle action button (Cancel/Confirm) press
+        function handleActionButtonClick() {
+            const now = Date.now();
+            const timeSinceLastPress = now - system.lastActionButtonPress;
+            
+            if (timeSinceLastPress < CONFIG.DOUBLE_PRESS_WINDOW) {
+                // Double press detected - Confirm entry
+                handleConfirm();
+                system.lastActionButtonPress = 0; // Reset timer
+                
+                // Clear any pending cancel timeout
+                if (system.cancelTimeoutId) {
+                    clearTimeout(system.cancelTimeoutId);
+                    system.cancelTimeoutId = null;
+                }
+            } else {
+                // First press - Set up for potential double press
+                // Don't cancel immediately, wait to see if it's a double press
+                system.lastActionButtonPress = now;
+                
+                // Schedule the cancel action after the double-press window
+                system.cancelTimeoutId = setTimeout(() => {
+                    handleCancel();
+                    system.lastActionButtonPress = 0;
+                    system.cancelTimeoutId = null;
+                }, CONFIG.DOUBLE_PRESS_WINDOW);
+            }
+        }
+        
+        // Handle confirmation action
+        function handleConfirm() {
+            if (system.state === STATE.LOCKOUT || system.state === STATE.SECURITY_LOCKOUT) return;
+            
+            log("Input confirmation requested");
+            provideHapticFeedback(150);
+            
+            // Add the current value to the code buffer if one exists
+            if (INPUT.currentValue !== null) {
+                logCurrentDigit();
+            }
+            
+            // Only validate if we have the complete code
+            if (SECURITY.codeBuffer.length === SECURITY.storedCode.length) {
+                validateCode();
+            } else {
+                log(`Please enter all ${SECURITY.storedCode.length} digits before confirming. Current: ${SECURITY.codeBuffer.length}`);
+            }
+        }
+        
+        // Handle cancel action
+        function handleCancel() {
+            log("Input cancelled");
+            provideHapticFeedback(150);
+            resetCurrentValue();
+            SECURITY.codeBuffer = [];
+            updatePinDisplay();
         }
         
         // Process button press
@@ -542,9 +598,9 @@
             if (INPUT.currentButton === buttonNumber) {
                 INPUT.pressCount = (INPUT.pressCount + 1) % BUTTON_VALUES[buttonNumber].length;
             } else {
+                // If there was a previous button with a value, log it before switching
                 if (INPUT.currentButton !== null && INPUT.currentValue !== null) {
-                    // Auto-confirm previous value when switching to new button
-                    confirmCurrentValue();
+                    logCurrentDigit();
                 }
                 INPUT.currentButton = buttonNumber;
                 INPUT.pressCount = 0;
@@ -554,15 +610,14 @@
             INPUT.currentValue = BUTTON_VALUES[buttonNumber][INPUT.pressCount];
             elements.currentValue.textContent = `Current Value: ${INPUT.currentValue}`;
             
-            // Clear existing timeout and set new one
+            // Clear existing timeout
             if (INPUT.cycleTimeout) clearTimeout(INPUT.cycleTimeout);
+            
+            // Set timeout to automatically log the digit if user stops pressing
             INPUT.cycleTimeout = setTimeout(() => {
                 if (INPUT.currentValue !== null) {
-                    // Auto-confirm after timeout
-                    confirmCurrentValue();
+                    logCurrentDigit();
                 }
-                INPUT.currentButton = null;
-                INPUT.pressCount = 0;
             }, CONFIG.CYCLE_TIMEOUT);
             
             // Remove pressed state after animation
@@ -571,25 +626,14 @@
             log(`Button ${buttonNumber} pressed (Value: ${INPUT.currentValue})`);
         }
 
-        // Confirm current value
-        function confirmCurrentValue() {
-            if (INPUT.currentValue === null) return;
-
-            // Add the current value to the code buffer
-            SECURITY.codeBuffer.push(INPUT.currentValue);
-            
-            // Update display
-            updatePinDisplay();
-            
-            // Log the action
-            log(`Value ${INPUT.currentValue} confirmed. PIN: ${SECURITY.codeBuffer.join('')}`);
-            
-            // Reset current input
-            resetCurrentValue();
-
-            // Check if we've reached the expected code length
-            if (SECURITY.codeBuffer.length === SECURITY.storedCode.length) {
-                validateCode();
+        // Log the current digit to the PIN buffer
+        function logCurrentDigit() {
+            // Only add to buffer if we haven't reached max digits
+            if (SECURITY.codeBuffer.length < SECURITY.storedCode.length) {
+                SECURITY.codeBuffer.push(INPUT.currentValue);
+                log(`Digit ${INPUT.currentValue} logged. PIN: ${SECURITY.codeBuffer.join('')}`);
+                resetCurrentValue();
+                updatePinDisplay();
             }
         }
 
