@@ -116,20 +116,9 @@
             color: #4CAF50;
         }
         
+        /* We can hide the Go button since we'll navigate automatically */
         .go-button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 16px;
-            width: 100%;
-            transition: background-color 0.3s ease;
-        }
-        
-        .go-button:hover {
-            background-color: #45a049;
+            display: none;
         }
     </style>
 </head>
@@ -179,6 +168,7 @@
                 
             </select>
             
+            <!-- We can keep the button in the HTML but it's hidden with CSS -->
             <button id="goButton" class="go-button">Go to Selected Demo</button>
         </div>
     </div>
@@ -192,12 +182,11 @@
             }
         });
         
-        // Optional: Auto-navigate when an option is selected
+        // Modified to automatically navigate when an option is selected
         document.getElementById('demoSelector').addEventListener('change', function() {
             const selectedValue = this.value;
             if (selectedValue) {
-                // Uncomment the line below if you want immediate navigation when selecting
-                // window.location.href = selectedValue;
+                window.location.href = selectedValue;
             }
         });
     </script>
