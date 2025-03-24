@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Letter Keypad Security System - Three Buttons</title>
+    <style>
+        /* Core variables */
+        :root {
+            --bg-color: #f0f0f0;
+            --container-bg: #333;
+            --button-bg: #444;
+            --button-hover: #555;
+            --button-active: #666;
+            --text-color: #fff;
+            --display-bg: #222;
+            --display-text: #0f0;
+            --led-red-inactive: #553333;
+            --led-green-inactive: #335533;
+            --led-red-active: #F44336;
+            --led-green-active: #4CAF50;
+            --success-text: #99ff99;
+            --cancel-color: #d32f2f;
+            --border-radius: 10px;
+        }
+        
+        /* Base styles */
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            touch-action: manipulation;
+            color: var(--text-color);
+        }
+        
+        .container, .instructions {
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            border-radius: 15px;
+            width: 320px;
+            margin-bottom: 20px;
+            user-select: none;
+        }
+        
+        .container {
+            background-color: var(--container-bg);
+            padding: 30px;
+        }
+        
+        /* Keypad layout - Triangle formation */
+        .keypad {
+            display: grid;
+            grid-template-areas:
+                ". top ."
+                "left . right";
+            gap: 2px;
+            margin-bottom: 60px;
+            width: 300px;
+            margin: 0 auto 60px;
+            justify-content: center;
+        }
+        
+        .button {
+            height: 100px;
+            width: 100px;
+            background-color: var(--button-bg);
+            border: none;
+            color: var(--text-color);
+            font-size: 22px;
+            cursor: pointer;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+            transition: all 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            touch-action: manipulation;
+            transform: rotate(45deg);
+            border-radius: 20px;
+        }
+        
+        .button:hover { background-color: var(--button-hover); }
+        .button:active, .button.pressed {
+            transform: rotate(75deg) translateY(2px);
+            background-color: var(--button-active);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        
+        .button span {
+            transform: rotate(-45deg);
+        }
+        
+        #btnA { grid-area: top; }
+        #btnB { grid-area: left; }
+        #btnC { grid-area: right; }
+        
+        /* Cancel button */
+        .cancel-button {
+            margin: 0 auto 20px;
+            height: 40px;
+            background-color: var(--cancel-color);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+            transition: all 0.15s ease;
+            width: 30%;
+            display: block;
+        }
+        
+        .cancel-button:hover { background-color: #b71c1c; }
+        .cancel-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        /* LED indicators */
+        .leds {
+            display: flex;
+            justify-content: space-evenly;
+            margin-bottom: 20px;
+            padding: 0 30px;
+            align-items: center;
+        }
+        
+        .leds div {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 60px;
+            margin: 10px;
+            flex: 1;
+            text-align: center;
+        }
+        
+        .leds span {
+            color: #e0e0e0;
+            margin-bottom: 5px;
+            font-size: 14px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .led {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: var(--container-bg);
+            border: 2px solid rgba(255,255,255,0.2);
+            position: relative;
+            min-width: 24px;
+            min-height: 24px;
+            box-sizing: content-box;
+        }
+        
+        .led::after {
+            content: "";
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: rgba(255,255,255,0.3);
+        }
+        
+        .led.red { background-color: var(--led-red-inactive); }
+        .led.green { background-color: var(--led-green-inactive); }
+        
+        .led.red.active { 
+            background-color: var(--led-red-active);
+            box-shadow: 0 0 10px var(--led-red-active);
+        }
+        .led.green.active { 
+            background-color: var(--led-green-active);
+            box-shadow: 0 0 10px var(--led-green-active);
+        }
+        
+        .led.green.blink { animation: blink-green 1s infinite; }
+        .led.green.fast-blink { animation: blink-green 0.3s infinite; }
+        
+        @keyframes blink-green {
+            0%, 100% { 
+                background-color: var(--led-green-inactive);
+                box-shadow: none;
+            }
+            50% { 
+                background-color: var(--led-green-active);
+                box-shadow: 0 0 10px var(--led-green-active);
+            }
+        }
+        
+        /* Display elements */
+        .status {
+            background-color: var(--display-bg);
+            color: var(--success-text);
+            font-family: 'Consolas', monospace;
+            padding: 15px;
+            border-radius: 5px;
+            height: 150px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        
+        .status p {
+            margin: 5px 0;
+        }
+        
+        .nibble-display {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 60px;
+            background-color: var(--display-bg);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .digit {
+            width: 30px;
+            height: 40px;
+            background-color: #333;
+            color: var(--display-text);
+            border-radius: 3px;
+            margin: 0 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Consolas', monospace;
+            font-size: 20px;
+        }
+        
+        /* Instructions area */
+        .instructions {
+            background-color: #fff;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .instructions h3 {
+            margin-top: 0;
+        }
+        
+        .button-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .button-info div {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .back-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: var(--button-bg);
+            color: var(--text-color);
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+            transition: all 0.1s;
+        }
+        
+        .back-button:hover { background-color: var(--button-hover); }
+        .back-button:active {
+            transform: translateY(2px);
+            background-color: var(--button-active);
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            
+            .container, .instructions {
+                width: 90%;
+                max-width: 350px;
+                padding: 15px;
+            }
+            
+            .keypad { gap: 15px; }
+            h1 { font-size: 1.5rem; }
+        }
+
+        /* Dark mode */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #1a1a1a;
+                --container-bg: #2d2d2d;
+                --button-bg: #3a3a3a;
+                --button-hover: #4a4a4a;
+                --display-bg: #262626;
+            }
+            
+            .instructions {
+                background-color: #2d2d2d;
+                color: #e0e0e0;
+            }
+            
+            .digit {
+                background-color: #404040;
+                color: #7fff7f;
+            }
+        }
+
+        body.force-dark {
+            --bg-color: #1a1a1a;
+            --container-bg: #2d2d2d;
+            --button-bg: #3a3a3a;
+            --button-hover: #4a4a4a;
+            --display-bg: #262626;
+            color: #e0e0e0;
+        }
+        
+        #mobileInstructions {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #4e4e4c;
+            border-radius: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Letters Demo - Three Buttons</h1>
+    <div class="container">
+        <h2>Correct code: A, BC, AB, ABC</h2>
+        <div class="button-info">
+            <div>
+                <span>Pending Inputs:</span>
+                <span id="pendingButtons">None</span>
+            </div>
+            <div>
+                <span>Active Inputs:</span>
+                <span id="activeButtons">None</span>
+            </div>
+        </div>
+        
+        <div class="leds">
+            <div>
+                <span>Error</span>
+                <div class="led red" id="errorLed" title="Error LED"></div>
+            </div>
+            <div>
+                <span>Status/Success</span>
+                <div class="led green" id="successLed" title="Status & Success LED"></div>
+            </div>
+        </div>
+        
+        <div class="nibble-display">
+            <div class="digit" id="digit1">-</div>
+            <div class="digit" id="digit2">-</div>
+            <div class="digit" id="digit3">-</div>
+            <div class="digit" id="digit4">-</div>
+        </div>
+        
+        <div class="keypad">
+            <button class="button" id="btnA" data-letter="A"><span>A</span></button>
+            <button class="button" id="btnB" data-letter="B"><span>B</span></button>
+            <button class="button" id="btnC" data-letter="C"><span>C</span></button>
+        </div>
+        
+        <button class="cancel-button" id="btnCancel">CANCEL / ENTER</button>
+        
+        <div class="status" id="status"></div>
+    </div>
+    
+    <div class="instructions">
+        <h3>How to Use - Release Policy:</h3>
+        <p><strong>Press & Release:</strong> Input is registered ONLY when you release the button(s).</p>
+        <p><strong>Single Buttons:</strong> Press a single button and release to register.</p>
+        <p><strong>Multiple Buttons:</strong> Press multiple buttons together, then release all to register one combination.</p>
+        <p><strong>Cancel/Enter Button:</strong></p>
+        <p> - Press once to cancel current input</p>
+        <p> - Press twice quickly to submit/validate your code (REQUIRED to check your code)</p>
+        <p><strong>Input Process:</strong></p>
+        <p>1. Enter the full sequence: A, BC, AB, ABC</p>
+        <p>2. Double-press the CANCEL/ENTER button to validate your code</p>
+        <p><strong>Watch the LEDs for system status feedback!</strong></p>
+        <div id="mobileInstructions">
+            <p><strong>Mobile users:</strong> Any button touch shows as "pending" but will only be registered when you release it.</p>
+            <p>For combination presses, try to touch multiple buttons simultaneously and release them at the same time.</p>
+            <p>If your phone has vibration enabled, you'll feel a vibration when input is registered.</p>
+        </div>
+    </div>
+    
+    <button class="back-button" onclick="window.location.href='/TH_Keypad_demo/'">Back</button>
+    
+    <script>
+        (() => {
+            // System configuration
+            const CONFIG = {
+                DEBOUNCE_TIME: 50,
+                MULTI_PRESS_WINDOW: 300,    // Time window for simultaneous releases (ms)
+                INPUT_TIMEOUT: 10000,       // 10 seconds
+                LOCKOUT_DURATION: 1000,     // Short lockout between inputs
+                SECURITY_LOCKOUT: 60000,    // 1 minute lockout after too many failures
+                SUCCESS_UNLOCK_TIME: 5000,  // Success display duration
+                MAX_CODE_LENGTH: 8,
+                MAX_FAILED_ATTEMPTS: 6,
+                DOUBLE_PRESS_TIMEOUT: 500   // Time window for detecting double press (ms)
+            };
+            
+            // System states
+            const STATE = {
+                IDLE: 'IDLE',
+                INPUT_ACTIVE: 'INPUT_ACTIVE',
+                LOCKOUT: 'LOCKOUT',
+                SECURITY_LOCKOUT: 'SECURITY_LOCKOUT'
+            };
+            
+            // DOM Elements
+            const elements = {
+                buttons: Array.from(document.querySelectorAll('.button')),
+                errorLed: document.getElementById('errorLed'),
+                successLed: document.getElementById('successLed'),
+                statusDisplay: document.getElementById('status'),
+                digits: Array.from(document.querySelectorAll('.digit')),
+                pendingButtonsDisplay: document.getElementById('pendingButtons'),
+                activeButtonsDisplay: document.getElementById('activeButtons'),
+                mobileInstructions: document.getElementById('mobileInstructions'),
+                cancelButton: document.getElementById('btnCancel')
+            };
+            
+            // System state tracking
+            const system = {
+                activeButtons: [],
+                pendingButtons: [],
+                buttonStates: [false, false, false],
+                buttonPressStartTimes: [0, 0, 0],
+                lastReleaseTime: 0,
+                codeBuffer: [],
+                storedCode: ["A", "BC", "AB", "ABC"],
+                failedAttempts: 0,
+                inputStartTime: 0,
+                state: STATE.IDLE,
+                timeoutId: null,
+                lastCancelPressTime: 0,    // Track last cancel button press time
+                cancelPressCount: 0,       // Track cancel button press count
+                cancelTimeoutId: null,     // For delayed cancel operation
+                cancelResetTimeoutId: null // For resetting cancel press count
+            };
+            
+            // Valid button combinations mapping
+            const inputMap = {
+                "A": "A", 
+                "B": "B", 
+                "C": "C",
+                "AB": "AB", 
+                "BA": "BA", 
+                "AC": "AC", 
+                "CA": "CA", 
+                "BC": "BC", 
+                "CB": "CB",
+                "ABC": "ABC", "ACB": "ABC", "BAC": "ABC", "BCA": "ABC", "CAB": "ABC", "CBA": "ABC"
+            };
+            
+            // Set up the system and event listeners
+            function initialize() {
+                log("System initialized");
+                setSystemState(STATE.IDLE);
+                startIdleLedBlink();
+                
+                // Set up button events
+                setupButtonEvents();
+                
+                // Set up cancel button
+                elements.cancelButton.addEventListener('click', handleCancel);
+                
+                // Check for mobile device
+                if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+                    elements.mobileInstructions.style.display = 'block';
+                }
+                
+                // Force dark mode
+                document.body.classList.add('force-dark');
+            }
+            
+            function setupButtonEvents() {
+                elements.buttons.forEach(button => {
+                    const buttonIndex = ["A", "B", "C"].indexOf(button.dataset.letter);
+                    
+                    // Mouse events
+                    button.addEventListener('mousedown', () => handleButtonPress(buttonIndex, button));
+                    button.addEventListener('mouseup', () => handleButtonRelease(buttonIndex, button));
+                    
+                    // Touch events
+                    button.addEventListener('touchstart', e => {
+                        e.preventDefault();
+                        handleButtonPress(buttonIndex, button);
+                    });
+                    
+                    button.addEventListener('touchend', e => {
+                        e.preventDefault();
+                        handleButtonRelease(buttonIndex, button);
+                    });
+                    
+                    button.addEventListener('touchcancel', e => {
+                        e.preventDefault();
+                        handleButtonRelease(buttonIndex, button);
+                    });
+                    
+                    // Prevent text selection
+                    button.addEventListener('selectstart', e => e.preventDefault());
+                });
+            }
+            
+            // Handle button press event
+            function handleButtonPress(buttonIndex, button) {
+                if (system.state === STATE.LOCKOUT || system.state === STATE.SECURITY_LOCKOUT) return;
+                
+                // Record press time and update state
+                system.buttonPressStartTimes[buttonIndex] = Date.now();
+                system.buttonStates[buttonIndex] = true;
+                button.classList.add('pressed');
+                
+                // Add to pending buttons (preserving order)
+                const buttonLetter = button.dataset.letter;
+                if (!system.pendingButtons.includes(buttonLetter)) {
+                    system.pendingButtons.push(buttonLetter);
+                    updatePendingButtonsDisplay();
+                }
+                
+                // Start input tracking if in IDLE state
+                if (system.state === STATE.IDLE) {
+                    setSystemState(STATE.INPUT_ACTIVE);
+                    system.inputStartTime = Date.now();
+                    startInputTimeout();
+                }
+            }
+            
+            // Handle button release event
+            function handleButtonRelease(buttonIndex, button) {
+                if (!system.buttonStates[buttonIndex]) return;
+                
+                // Update button state
+                system.buttonStates[buttonIndex] = false;
+                button.classList.remove('pressed');
+                
+                // Move from pending to active buttons (preserving order)
+                const buttonLetter = button.dataset.letter;
+                const pendingIndex = system.pendingButtons.indexOf(buttonLetter);
+                
+                if (pendingIndex > -1) {
+                    system.pendingButtons.splice(pendingIndex, 1);
+                    updatePendingButtonsDisplay();
+                    
+                    if (!system.activeButtons.includes(buttonLetter)) {
+                        system.activeButtons.push(buttonLetter);
+                        updateActiveButtonsDisplay();
+                    }
+                }
+                
+                // Track release time for multi-button releases
+                system.lastReleaseTime = Date.now();
+                
+                // Process combination after a short delay if all buttons released
+                if (system.buttonStates.every(state => !state) && system.activeButtons.length > 0) {
+                    setTimeout(() => {
+                        if (system.buttonStates.every(state => !state)) {
+                            processButtonCombination();
+                        }
+                    }, CONFIG.MULTI_PRESS_WINDOW);
+                }
+            }
+            
+            // Update the UI displays
+            function updatePendingButtonsDisplay() {
+                elements.pendingButtonsDisplay.textContent = 
+                    system.pendingButtons.length === 0 ? "None" : system.pendingButtons.join("");
+            }
+            
+            function updateActiveButtonsDisplay() {
+                elements.activeButtonsDisplay.textContent = 
+                    system.activeButtons.length === 0 ? "None" : system.activeButtons.join("");
+            }
+            
+            // Process button combination after release
+            function processButtonCombination() {
+                if (system.activeButtons.length === 0) return;
+                
+                // Form the combination preserving order
+                const combination = system.activeButtons.join("");
+                
+                // Special case: If all three buttons are pressed, always return "ABC"
+                if (combination.includes("A") && combination.includes("B") && combination.includes("C") && 
+                    combination.length === 3) {
+                    log(`Registered input: ABC (3-button combination)`);
+                    
+                    // Haptic feedback
+                    if (window.navigator && window.navigator.vibrate) {
+                        window.navigator.vibrate(100);
+                    }
+                    
+                    // Add to code buffer and check status
+                    system.codeBuffer.push("ABC");
+                    updateCodeDisplay();
+                    
+                    // Removed automatic validation - user must confirm with Enter
+                    setSystemState(STATE.INPUT_ACTIVE);
+                } 
+                // Normal case: Check in inputMap
+                else if (combination in inputMap) {
+                    // Get standardized combination
+                    const mappedCombination = inputMap[combination];
+                    log(`Registered input: ${mappedCombination}`);
+                    
+                    // Haptic feedback
+                    if (window.navigator && window.navigator.vibrate) {
+                        window.navigator.vibrate(100);
+                    }
+                    
+                    // Add to code buffer and check status
+                    system.codeBuffer.push(mappedCombination);
+                    updateCodeDisplay();
+                    
+                    // Removed automatic validation - user must confirm with Enter
+                    setSystemState(STATE.INPUT_ACTIVE);
+                } else {
+                    log(`Invalid button combination: ${combination}`);
+                    flashErrorLed();
+                }
+                
+                // Reset active buttons
+                system.activeButtons = [];
+                updateActiveButtonsDisplay();
+            }
+            
+            // Manage system state changes
+            function setSystemState(newState) {
+                const oldState = system.state;
+                system.state = newState;
+                log(`State change: ${oldState} → ${newState}`);
+                
+                // Reset LEDs
+                elements.errorLed.className = 'led red';
+                elements.successLed.className = 'led green';
+                
+                switch (newState) {
+                    case STATE.IDLE:
+                        startIdleLedBlink();
+                        break;
+                    case STATE.INPUT_ACTIVE:
+                        elements.successLed.classList.add('fast-blink');
+                        break;
+                    case STATE.LOCKOUT:
+                        // Turn off success LED and activate error LED
+                        elements.successLed.className = 'led green';
+                        elements.errorLed.classList.add('active');
+                        setTimeout(() => {
+                            if (system.state === STATE.LOCKOUT) {
+                                setSystemState(STATE.INPUT_ACTIVE);
+                            }
+                        }, CONFIG.LOCKOUT_DURATION);
+                        break;
+                    case STATE.SECURITY_LOCKOUT:
+                        // Turn off success LED and activate error LED
+                        elements.successLed.className = 'led green';
+                        elements.errorLed.classList.add('active');
+                        log("SECURITY LOCKOUT - Too many failed attempts");
+                        setTimeout(() => {
+                            if (system.state === STATE.SECURITY_LOCKOUT) {
+                                system.failedAttempts = 0;
+                                setSystemState(STATE.IDLE);
+                            }
+                        }, CONFIG.SECURITY_LOCKOUT);
+                        break;
+                }
+            }
+            
+            // LED and timeout management
+            function startIdleLedBlink() {
+                elements.successLed.classList.add('blink');
+            }
+            
+            function startInputTimeout() {
+                if (system.timeoutId) clearTimeout(system.timeoutId);
+                
+                system.timeoutId = setTimeout(() => {
+                    if (system.state === STATE.INPUT_ACTIVE) {
+                        log("Input timeout. Returning to IDLE state.");
+                        resetSystem();
+                    }
+                }, CONFIG.INPUT_TIMEOUT);
+            }
+            
+            function flashErrorLed() {
+                elements.errorLed.classList.add('active');
+                setTimeout(() => elements.errorLed.classList.remove('active'), 500);
+            }
+            
+            // Validate entered code
+            function validateCode() {
+                // Check if this is a complete or partial code validation
+                const isCompleteCode = system.codeBuffer.length === system.storedCode.length;
+                
+                // For partial codes, check if what's entered so far matches
+                let isMatch = true;
+                for (let i = 0; i < system.codeBuffer.length; i++) {
+                    if (i >= system.storedCode.length || system.codeBuffer[i] !== system.storedCode[i]) {
+                        isMatch = false;
+                        break;
+                    }
+                }
+                
+                if (isMatch) {
+                    if (isCompleteCode) {
+                        log("Code CORRECT! Access granted.");
+                        elements.successLed.className = 'led green active';
+                        system.state = STATE.IDLE;
+                        system.failedAttempts = 0;
+                        
+                        setTimeout(() => {
+                            elements.successLed.className = 'led green';
+                            resetSystem(true);
+                        }, CONFIG.SUCCESS_UNLOCK_TIME);
+                    } else {
+                        // Partial correct match
+                        log("Partial code correct. Continue entering code or press ENTER when done.");
+                        elements.successLed.className = 'led green active';
+                        
+                        setTimeout(() => {
+                            if (system.state === STATE.INPUT_ACTIVE) {
+                                elements.successLed.className = 'led green fast-blink';
+                            }
+                        }, 1000);
+                    }
+                } else {
+                    log("Code INCORRECT! Access denied.");
+                    system.failedAttempts++;
+                    log(`Failed attempts: ${system.failedAttempts}/${CONFIG.MAX_FAILED_ATTEMPTS}`);
+                    
+                    // Ensure success LED is off and error LED is on (not blinking)
+                    elements.successLed.className = 'led green';
+                    elements.errorLed.className = 'led red active';
+                    
+                    if (system.failedAttempts >= CONFIG.MAX_FAILED_ATTEMPTS) {
+                        setSystemState(STATE.SECURITY_LOCKOUT);
+                    } else {
+                        // Keep error LED on for 5 seconds then reset
+                        setTimeout(() => {
+                            elements.errorLed.className = 'led red';
+                            resetSystem();
+                        }, 5000);
+                    }
+                }
+            }
+            
+            // Reset system state
+            function resetSystem(forceReset = false) {
+                system.activeButtons = [];
+                system.pendingButtons = [];
+                system.codeBuffer = [];
+                updateActiveButtonsDisplay();
+                updatePendingButtonsDisplay();
+                updateCodeDisplay();
+                clearTimeout(system.timeoutId);
+                
+                if (forceReset || !elements.successLed.classList.contains('active')) {
+                    setSystemState(STATE.IDLE);
+                }
+            }
+            
+            // Update display and utility functions
+            function updateCodeDisplay() {
+                elements.digits.forEach((digit, index) => {
+                    digit.textContent = index < system.codeBuffer.length && index < CONFIG.MAX_CODE_LENGTH 
+                        ? system.codeBuffer[index] 
+                        : '-';
+                });
+            }
+            
+            function log(message) {
+                const time = new Date().toLocaleTimeString();
+                const logEntry = document.createElement('p');
+                logEntry.textContent = `[${time}] ${message}`;
+                elements.statusDisplay.appendChild(logEntry);
+                elements.statusDisplay.scrollTop = elements.statusDisplay.scrollHeight;
+            }
+            
+            function arraysEqual(a, b) {
+                if (a.length !== b.length) return false;
+                for (let i = 0; i < a.length; i++) {
+                    if (a[i] !== b[i]) return false;
+                }
+                return true;
+            }
+            
+            function handleCancel() {
+                const currentTime = Date.now();
+                
+                // Check if this is a double press (second press within timeout window)
+                if (currentTime - system.lastCancelPressTime < CONFIG.DOUBLE_PRESS_TIMEOUT) {
+                    system.cancelPressCount++;
+                    
+                    // Double press - handle as "Enter"
+                    if (system.cancelPressCount === 2) {
+                        log("ENTER pressed - validating current code");
+                        
+                        if (window.navigator && window.navigator.vibrate) {
+                            window.navigator.vibrate([50, 50, 150]); // Different vibration pattern for enter
+                        }
+                        
+                        // Validate the code if there's any input
+                        if (system.codeBuffer.length > 0) {
+                            validateCode();
+                        } else {
+                            log("No code to validate");
+                            flashErrorLed();
+                        }
+                        
+                        // Reset press tracking
+                        system.cancelPressCount = 0;
+                        
+                        // Clear any pending cancel timeout
+                        if (system.cancelTimeoutId) {
+                            clearTimeout(system.cancelTimeoutId);
+                            system.cancelTimeoutId = null;
+                        }
+                    }
+                } else {
+                    // First press or outside timeout window - prepare for "Cancel"
+                    system.cancelPressCount = 1;
+                    log("Cancel button pressed once. Press again to ENTER, or wait to cancel input.");
+                    
+                    // Schedule the cancel operation after the double-press window
+                    if (system.cancelTimeoutId) {
+                        clearTimeout(system.cancelTimeoutId);
+                    }
+                    
+                    system.cancelTimeoutId = setTimeout(() => {
+                        // Only perform cancel if we haven't received a second press
+                        if (system.cancelPressCount === 1) {
+                            log("Input cancelled by user");
+                            
+                            if (window.navigator && window.navigator.vibrate) {
+                                window.navigator.vibrate(150);
+                            }
+                            
+                            resetSystem();
+                        }
+                        system.cancelPressCount = 0;
+                    }, CONFIG.DOUBLE_PRESS_TIMEOUT);
+                }
+                
+                // Update last press time
+                system.lastCancelPressTime = currentTime;
+                
+                // Reset press count after timeout (in case user presses once and leaves)
+                clearTimeout(system.cancelResetTimeoutId);
+                system.cancelResetTimeoutId = setTimeout(() => {
+                    system.cancelPressCount = 0;
+                }, CONFIG.DOUBLE_PRESS_TIMEOUT * 2); // Longer timeout for overall reset
+            }
+            
+            // Start the system
+            initialize();
+        })();
+    </script>
+</body>
+</html> 
