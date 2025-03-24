@@ -259,7 +259,7 @@
             cursor: pointer;
             box-shadow: 0 5px 10px rgba(0,0,0,0.2);
             transition: all 0.15s ease;
-            width: 100%;
+            width: 50%;
             background-color: var(--cancel-color);
             display: flex;
             align-items: center;
@@ -389,9 +389,12 @@
                 <span class="values">[9,0,*,#]</span>
             </button>
         </div>
+        <div>
+            <h2> (Single Press = Cancel, Double Press = Confirm)</h2>
+        </div>
         
         <div class="action-buttons">
-            <button class="action-button" id="actionBtn">CANCEL / CONFIRM (Single Press = Cancel, Double Press = Confirm)</button>
+            <button class="action-button" id="actionBtn">CANCEL / CONFIRM</button>
         </div>
         
         <div class="status" id="status"></div>
