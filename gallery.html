@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Image Gallery</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+        
+        .gallery {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .thumbnail {
+            width: 200px;
+            height: 150px;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .thumbnail:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        
+        .thumbnail:hover img {
+            transform: scale(1.1);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .modal.show {
+            display: flex;
+            opacity: 1;
+        }
+        
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            transition: transform 0.3s ease;
+        }
+        
+        .modal-content img {
+            width: 100%;
+            height: auto;
+            max-height: 90vh;
+            object-fit: contain;
+            border-radius: 4px;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        
+        .close-btn:hover {
+            color: #ccc;
+        }
+        
+        .nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-size: 50px;
+            cursor: pointer;
+            user-select: none;
+            padding: 0 20px;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-btn:hover {
+            color: #ccc;
+        }
+        
+        .prev {
+            left: 10px;
+        }
+        
+        .next {
+            right: 10px;
+        }
+        
+        .caption {
+            position: absolute;
+            bottom: 20px;
+            color: white;
+            text-align: center;
+            width: 100%;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            transition: opacity 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <h1>Simple Image Gallery</h1>
+    
+    <div class="gallery">
+        <div class="thumbnail" onclick="openModal(0)">
+            <img src="https://source.unsplash.com/random/800x600?nature=1" alt="Nature 1">
+        </div>
+        <div class="thumbnail" onclick="openModal(1)">
+            <img src="https://source.unsplash.com/random/800x600?nature=2" alt="Nature 2">
+        </div>
+        <div class="thumbnail" onclick="openModal(2)">
+            <img src="https://source.unsplash.com/random/800x600?nature=3" alt="Nature 3">
+        </div>
+        <div class="thumbnail" onclick="openModal(3)">
+            <img src="https://source.unsplash.com/random/800x600?nature=4" alt="Nature 4">
+        </div>
+        <div class="thumbnail" onclick="openModal(4)">
+            <img src="https://source.unsplash.com/random/800x600?nature=5" alt="Nature 5">
+        </div>
+        <div class="thumbnail" onclick="openModal(5)">
+            <img src="https://source.unsplash.com/random/800x600?nature=6" alt="Nature 6">
+        </div>
+    </div>
+    
+    <div class="modal" id="modal">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <span class="nav-btn prev" onclick="changeSlide(-1)">&#10094;</span>
+        <div class="modal-content">
+            <img id="modal-img" src="">
+            <div class="caption" id="caption"></div>
+        </div>
+        <span class="nav-btn next" onclick="changeSlide(1)">&#10095;</span>
+    </div>
+    
+    <script>
+        const images = [
+            { src: "https://source.unsplash.com/random/800x600?nature=1", alt: "Beautiful Nature Scene 1" },
+            { src: "https://source.unsplash.com/random/800x600?nature=2", alt: "Beautiful Nature Scene 2" },
+            { src: "https://source.unsplash.com/random/800x600?nature=3", alt: "Beautiful Nature Scene 3" },
+            { src: "https://source.unsplash.com/random/800x600?nature=4", alt: "Beautiful Nature Scene 4" },
+            { src: "https://source.unsplash.com/random/800x600?nature=5", alt: "Beautiful Nature Scene 5" },
+            { src: "https://source.unsplash.com/random/800x600?nature=6", alt: "Beautiful Nature Scene 6" }
+        ];
+        
+        let currentIndex = 0;
+        const modal = document.getElementById('modal');
+        const modalImg = document.getElementById('modal-img');
+        const caption = document.getElementById('caption');
+        
+        function openModal(index) {
+            currentIndex = index;
+            updateModal();
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeModal() {
+            modal.classList.remove('show');
+            document.body.style.overflow = 'auto';
+        }
+        
+        function changeSlide(direction) {
+            currentIndex += direction;
+            
+            if (currentIndex >= images.length) {
+                currentIndex = 0;
+            } else if (currentIndex < 0) {
+                currentIndex = images.length - 1;
+            }
+            
+            updateModal();
+        }
+        
+        function updateModal() {
+            modalImg.src = images[currentIndex].src;
+            modalImg.alt = images[currentIndex].alt;
+            caption.textContent = images[currentIndex].alt;
+        }
+        
+        // Close modal when clicking outside the image
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (modal.classList.contains('show')) {
+                if (e.key === 'Escape') {
+                    closeModal();
+                } else if (e.key === 'ArrowLeft') {
+                    changeSlide(-1);
+                } else if (e.key === 'ArrowRight') {
+                    changeSlide(1);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
