@@ -85,7 +85,7 @@
         .keypad {
             display: grid;
             grid-template-areas:
-                ". up ."
+                ". confirm ."
                 "left . right"
                 ". . .";
             gap: 15px;
@@ -147,9 +147,9 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
         
-        #btnUp { grid-area: up; }
+        #btnUp { grid-area: right; }
         #btnDown { grid-area: left; }
-        #btnConfirm { grid-area: right; }
+        #btnConfirm { grid-area: confirm; }
         
         /* LED indicators */
         .leds {
@@ -359,6 +359,10 @@
             </div>
         </div>
 
+        <div>
+            <h2>PIN: 5639</h2>
+        </div>
+
         <div class="current-value" id="currentValue">
             Current Value: -
         </div>
@@ -367,6 +371,7 @@
             <div class="pin-digit" id="digit1">-</div>
             <div class="pin-digit" id="digit2">-</div>
             <div class="pin-digit" id="digit3">-</div>
+            <div class="pin-digit" id="digit4">-</div>
         </div>
         
         <div class="keypad no-select">
@@ -403,7 +408,7 @@
         <ol>
             <li>Use Up/Down buttons to select your desired digit (0-9)</li>
             <li>Press Confirm to lock in that digit</li>
-            <li>Repeat for all three digits</li>
+            <li>Repeat for all four digits</li>
             <li>Use the bottom button to finalize your PIN</li>
             <li>Single press of the bottom button will cancel</li>
             <li>Double press will confirm the complete PIN</li>
@@ -432,7 +437,7 @@
         
         // Security settings
         const SECURITY = {
-            storedCode: ['1', '2', '3'], // Example PIN
+            storedCode: ['5', '6', '3', '9'], // PIN: 5639
             codeBuffer: [],
             failedAttempts: 0
         };
@@ -540,20 +545,22 @@
             
             switch(buttonId) {
                 case 'btnUp':
-                    INPUT.currentValue = ((INPUT.currentValue || 0) + 1) % 10;
+                    INPUT.currentValue = (typeof INPUT.currentValue === 'number' ? INPUT.currentValue : 0);
+                    INPUT.currentValue = (INPUT.currentValue + 1) % 10;
                     break;
                 case 'btnDown':
-                    INPUT.currentValue = ((INPUT.currentValue || 0) - 1 + 10) % 10;
+                    INPUT.currentValue = (typeof INPUT.currentValue === 'number' ? INPUT.currentValue : 0);
+                    INPUT.currentValue = (INPUT.currentValue - 1 + 10) % 10;
                     break;
                 case 'btnConfirm':
-                    if (SECURITY.codeBuffer.length < 3) {
+                    if (SECURITY.codeBuffer.length < 4 && typeof INPUT.currentValue === 'number') {
                         SECURITY.codeBuffer.push(INPUT.currentValue.toString());
                         log(`Digit ${INPUT.currentValue} logged. PIN: ${SECURITY.codeBuffer.join('')}`);
                         INPUT.currentValue = null;
                         elements.currentValue.textContent = 'Current Value: -';
                         updatePinDisplay();
                         
-                        if (SECURITY.codeBuffer.length === 3) {
+                        if (SECURITY.codeBuffer.length === 4) {
                             setSystemState(STATE.INPUT_ACTIVE);
                             log('PIN complete, ready for confirmation');
                         }
@@ -572,7 +579,7 @@
         function handleConfirm() {
             if (system.state === STATE.LOCKOUT || system.state === STATE.SECURITY_LOCKOUT) return;
             
-            if (SECURITY.codeBuffer.length === 3) {
+            if (SECURITY.codeBuffer.length === 4) {
                 validateCode();
             } else {
                 log(`Please enter all ${SECURITY.storedCode.length} digits before confirming. Current: ${SECURITY.codeBuffer.length}`);
