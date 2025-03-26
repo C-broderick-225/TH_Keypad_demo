@@ -1,0 +1,2692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Gallery</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;  /* Dark background */
+            padding: 0;
+            color: #e0e0e0;  /* Light text */
+            margin: 0;
+        }
+        
+        .static-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: rgba(45, 45, 45, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4),
+                        0 0 0 1px rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+        }
+        
+        .content-wrapper {
+            padding-top: 80px;
+            padding-left: 20px;
+            padding-right: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #ffffff;  /* Bright white for heading */
+        }
+        
+        .controls {
+            display: none;
+        }
+        
+        button {
+            padding: 10px 15px;
+            background-color: #424242;  /* Dark gray for buttons */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #616161;  /* Lighter gray on hover */
+        }
+        
+        button.secondary {
+            background-color: #2d2d2d;  /* Darker gray for secondary buttons */
+        }
+        
+        button.secondary:hover {
+            background-color: #424242;  /* Medium gray on hover */
+        }
+        
+        .gallery {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .thumbnail {
+            width: var(--thumbnail-size, 200px);
+            height: var(--thumbnail-size, 200px);
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2),
+                        inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(145deg, #2d2d2d, #252525);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            will-change: transform, box-shadow;
+            backface-visibility: hidden;
+            transform: translateZ(0);
+        }
+        
+        .thumbnail.hidden {
+            opacity: 0.2;
+            pointer-events: none;
+            transform: scale(0.95) translateZ(0);
+        }
+        
+        .thumbnail.visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: scale(1) translateZ(0);
+        }
+        
+        .thumbnail:hover {
+            transform: translateY(-5px) scale(1.02) translateZ(0);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3),
+                        inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .thumbnail-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+            background: linear-gradient(145deg, #1a1a1a, #151515);
+            padding: 0;
+            border-radius: 12px;
+            will-change: transform;
+            backface-visibility: hidden;
+            transform: translateZ(0);
+        }
+        
+        .thumbnail:hover .thumbnail-img {
+            transform: scale(1.08) translateZ(0);
+        }
+        
+        .thumbnail-info {
+            padding: 12px;
+            font-size: 12px;
+            color: #e0e0e0;
+            word-break: break-word;
+            position: relative;
+            padding-right: 35px;
+            background: linear-gradient(to bottom, rgba(45, 45, 45, 0.8), rgba(45, 45, 45, 0.95));
+            border-radius: 0 0 12px 12px;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+        
+        .thumbnail-info div:first-child {
+            font-weight: 500;
+            margin-bottom: 4px;
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        
+        .thumbnail-info div:last-child {
+            color: #909090 !important;
+            font-size: 11px;
+        }
+        
+        .thumbnail.selected {
+            border: 3px solid #4CAF50;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2),
+                       0 8px 24px rgba(0, 0, 0, 0.3);
+            transform: translateY(-2px) translateZ(0);
+        }
+        
+        .select-btn {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            background: rgba(66, 66, 66, 0.8);
+            color: #e0e0e0;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            z-index: 2;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            will-change: transform, opacity;
+            backface-visibility: hidden;
+            transform: translateZ(0);
+        }
+        
+        .thumbnail:hover .select-btn,
+        .select-btn.selected {
+            opacity: 1;
+            transform: translateY(-2px) translateZ(0);
+        }
+        
+        .select-btn:hover {
+            background: rgba(97, 97, 97, 0.9);
+            transform: translateY(-2px) scale(1.05) translateZ(0);
+        }
+        
+        .select-btn.selected {
+            background: rgba(76, 175, 80, 0.8);
+            color: white;
+        }
+        
+        .select-btn.selected:hover {
+            background: rgba(76, 175, 80, 0.9);
+        }
+        
+        .status-message {
+            text-align: center;
+            margin: 10px 0;
+            color: #b0b0b0;
+            font-style: italic;
+        }
+        
+        .directory-info {
+            display: none;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1003;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            position: relative;
+            background: #2d2d2d;
+            margin: 5vh auto;
+            padding: 0;
+            width: 90%;
+            max-width: 1200px;
+            height: 90vh;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #e0e0e0;
+            font-size: 18px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #e0e0e0;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+        }
+
+        #pngEditorFrame {
+            flex: 1;
+            width: 100%;
+            border: none;
+            background: #1a1a1a;
+        }
+        
+        .modal-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 20px;
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s ease, background-color 0.3s ease;
+            background-color: rgba(0, 0, 0, 0);
+            border-radius: 5px;
+        }
+        
+        .modal-nav:hover {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-nav.show {
+            opacity: 0.7;
+        }
+        
+        .modal-nav.show:hover {
+            opacity: 1;
+        }
+        
+        .modal-prev {
+            left: 20px;
+        }
+        
+        .modal-next {
+            right: 20px;
+        }
+        
+        .convert-btn {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background-color: #424242;  /* Dark gray for convert button */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 2;
+        }
+        
+        .thumbnail:hover .convert-btn {
+            opacity: 1;
+        }
+        
+        .convert-btn:hover {
+            background-color: #616161;  /* Lighter gray on hover */
+            transform: scale(1.1);
+        }
+        
+        .metadata-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+        }
+        
+        .metadata-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #2d2d2d;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+        }
+        
+        .metadata-field {
+            margin-bottom: 15px;
+        }
+        
+        .metadata-field label {
+            display: block;
+            margin-bottom: 5px;
+            color: #e0e0e0;
+        }
+        
+        .metadata-field input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background: #1a1a1a;
+            color: #e0e0e0;
+        }
+        
+        .metadata-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .modal-editor-btn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background-color: #424242;  /* Dark gray for editor button */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 3;
+        }
+        
+        .modal-editor-btn.show {
+            opacity: 0.9;
+        }
+        
+        .modal-editor-btn.show:hover {
+            opacity: 1;
+            background-color: #616161;  /* Lighter gray on hover */
+        }
+
+        /* Search Container Styles */
+        .search-container {
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .search-container input {
+            width: 100%;
+            padding: 8px 12px;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .search-container input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+
+        .search-highlight {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            color: #909090;
+            pointer-events: none;
+        }
+
+        .tags-container {
+            margin-top: 15px;
+        }
+
+        .tags-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+
+        .tags-count {
+            color: #909090;
+            font-size: 12px;
+        }
+
+        .tags-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            min-height: 30px;
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            background: #424242;
+            color: #e0e0e0;
+            border-radius: 16px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .tag:hover {
+            background: #616161;
+            transform: translateY(-1px);
+        }
+
+        .tag.active {
+            background: #4CAF50;
+            color: white;
+            border-color: #45a049;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+        }
+
+        .tag-count {
+            margin-left: 6px;
+            color: #909090;
+            font-size: 11px;
+        }
+
+        .tag.active .tag-count {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Collapsible Search Panel Styles */
+        .search-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: rgba(45, 45, 45, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: -2px 0 20px rgba(0, 0, 0, 0.4),
+                        0 0 0 1px rgba(255, 255, 255, 0.1);
+            transition: right 0.3s ease;
+            z-index: 100;
+            padding: 20px;
+            padding-top: 60px;
+            overflow-y: auto;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .search-panel.show {
+            right: 0;
+        }
+
+        .search-panel-tab {
+            position: fixed;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(66, 66, 66, 0.6);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            padding: 15px 10px;
+            border-radius: 5px 0 0 5px;
+            cursor: pointer;
+            writing-mode: vertical-lr;
+            text-orientation: mixed;
+            color: #e0e0e0;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .search-panel-tab:hover {
+            background: rgba(97, 97, 97, 0.7);
+            box-shadow: -2px 0 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .search-panel-content {
+            margin-top: 20px;
+        }
+
+        /* Update hamburger menu styles */
+        .hamburger-menu {
+            position: fixed;
+            top: 0;
+            left: -250px;
+            width: 250px;
+            height: 100vh;
+            background: rgba(45, 45, 45, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.4),
+                        0 0 0 1px rgba(255, 255, 255, 0.1);
+            transition: left 0.3s ease;
+            z-index: 1000;
+            padding: 15px;
+            padding-top: 60px;
+            overflow-y: auto;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .hamburger-menu.show {
+            left: 0;
+        }
+
+        .hamburger-icon.show span:nth-child(1) {
+            transform: translateY(7px) rotate(45deg);
+        }
+
+        .hamburger-icon.show span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger-icon.show span:nth-child(3) {
+            transform: translateY(-7px) rotate(-45deg);
+        }
+
+        .menu-section {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 1001;
+        }
+
+        .menu-section:first-child {
+            margin-top: 10px; /* Add some space at the top of the first section */
+        }
+
+        .menu-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .menu-section h3 {
+            color: #e0e0e0;
+            font-size: 14px;
+            margin-bottom: 12px;
+            padding-left: 8px;
+            border-left: 2px solid rgba(255, 255, 255, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .menu-buttons button {
+            width: 100%;
+            text-align: left;
+            padding: 10px 12px;
+            background: rgba(66, 66, 66, 0.6);
+            color: #e0e0e0;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .menu-buttons button i {
+            width: 20px;
+            text-align: center;
+            font-size: 16px;
+            color: #909090;
+            transition: color 0.2s ease;
+        }
+
+        .menu-buttons button:hover {
+            background: rgba(97, 97, 97, 0.7);
+            transform: translateX(3px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .menu-buttons button:hover i {
+            color: #e0e0e0;
+        }
+
+        .menu-buttons button.secondary {
+            background: rgba(45, 45, 45, 0.6);
+        }
+
+        .menu-buttons button.secondary:hover {
+            background: rgba(66, 66, 66, 0.7);
+        }
+
+        .size-control {
+            background: rgba(66, 66, 66, 0.6);
+            padding: 12px;
+            border-radius: 6px;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .size-control label {
+            display: block;
+            margin-bottom: 8px;
+            color: #e0e0e0;
+            font-size: 13px;
+        }
+
+        .size-control input[type="range"] {
+            width: 100%;
+            height: 3px;
+            -webkit-appearance: none;
+            background: #616161;
+            border-radius: 2px;
+            outline: none;
+            margin: 8px 0;
+        }
+
+        .size-control input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #616161;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .size-control input[type="range"]::-webkit-slider-thumb:hover {
+            background: #909090;
+            transform: scale(1.1);
+        }
+
+        .size-control #sizeValue {
+            display: block;
+            text-align: center;
+            color: #909090;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        /* Update hamburger icon */
+        .hamburger-icon {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            width: 35px;
+            height: 35px;
+            background: #424242;
+            border-radius: 6px;
+            cursor: pointer;
+            z-index: 1002; /* Ensure icon stays above menu */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .hamburger-icon:hover {
+            background: #616161;
+            transform: scale(1.05);
+        }
+
+        .hamburger-icon span {
+            display: block;
+            width: 20px;
+            height: 2px;
+            background: #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        /* Update search input styles */
+        #searchInput {
+            background: rgba(66, 66, 66, 0.6);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        #searchInput:focus {
+            background: rgba(97, 97, 97, 0.7);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .menu-buttons button.active {
+            background: rgba(76, 175, 80, 0.6) !important;
+            color: white !important;
+        }
+
+        .menu-buttons button.active i {
+            color: white !important;
+        }
+
+        .menu-buttons button.active:hover {
+            background: rgba(76, 175, 80, 0.7) !important;
+        }
+
+        /* Add these styles in the <style> section */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: rgba(45, 45, 45, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: #e0e0e0;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+            max-width: 300px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.error {
+            background: rgba(244, 67, 54, 0.9);
+        }
+
+        .toast.success {
+            background: rgba(76, 175, 80, 0.9);
+        }
+
+        .toast.warning {
+            background: rgba(255, 152, 0, 0.9);
+        }
+
+        .toast i {
+            font-size: 18px;
+        }
+
+        .toast.error i {
+            color: #ffebee;
+        }
+
+        .toast.success i {
+            color: #e8f5e9;
+        }
+
+        .toast.warning i {
+            color: #fff3e0;
+        }
+
+        .toast-content {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .toast-close {
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+        }
+
+        .toast-close:hover {
+            opacity: 1;
+        }
+
+        .toast-button {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 4px;
+            color: #e0e0e0;
+            padding: 4px 8px;
+            margin-left: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .toast-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .unselect-toast {
+            background: rgba(76, 175, 80, 0.9);
+        }
+
+        .unselect-toast i {
+            color: #e8f5e9;
+        }
+
+        /* Custom Scrollbar Styles */
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(45, 45, 45, 0.6);
+            border-radius: 6px;
+            margin: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(97, 97, 97, 0.8);
+            border-radius: 6px;
+            border: 3px solid rgba(45, 45, 45, 0.6);
+            transition: all 0.3s ease;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(97, 97, 97, 1);
+            border: 2px solid rgba(45, 45, 45, 0.6);
+        }
+
+        /* For Firefox */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(97, 97, 97, 0.8) rgba(45, 45, 45, 0.6);
+        }
+
+        /* Add smooth scrolling to the whole page */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Custom scrollbar for specific containers */
+        .gallery {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(97, 97, 97, 0.8) rgba(45, 45, 45, 0.6);
+        }
+
+        .hamburger-menu {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(97, 97, 97, 0.8) rgba(45, 45, 45, 0.6);
+        }
+
+        .search-panel {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(97, 97, 97, 0.8) rgba(45, 45, 45, 0.6);
+        }
+    </style>
+</head>
+<body>
+    <div class="hamburger-icon">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+
+    <div class="hamburger-menu">
+        <div class="menu-section">
+            <h3>Search & Keywords</h3>
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search images by name, tags, or metadata...">
+                <div class="search-highlight"></div>
+            </div>
+            
+            <div class="tags-container">
+                <div class="tags-header">
+                    <span>Keywords:</span>
+                    <span class="tags-count"></span>
+                </div>
+                <div class="tags-list" id="tagsList">
+                    <!-- Tags will be dynamically added here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="menu-section">
+            <h3>Display</h3>
+            <div class="size-control">
+                <label for="thumbnailSize">Thumbnail Size</label>
+                <input type="range" id="thumbnailSize" min="100" max="400" value="200" step="10">
+                <span id="sizeValue">200px</span>
+            </div>
+        </div>
+
+        <div class="menu-section">
+            <h3>Editor</h3>
+            <div class="menu-buttons">
+                <button id="openMetadataEditorBtn"><i class="fas fa-edit"></i>PNG Editor</button>
+            </div>
+        </div>
+
+        <div class="menu-section">
+            <h3>Gallery</h3>
+            <div class="menu-buttons">
+                <button id="openDirectoryBtn"><i class="fas fa-folder-open"></i>Select Folder</button>
+                <button id="addFilesBtn"><i class="fas fa-plus"></i>Add Files</button>
+                <button id="clearGalleryBtn"><i class="fas fa-trash"></i>Clear Gallery</button>
+                <button id="reloadGalleryBtn"><i class="fas fa-sync"></i>Reload</button>
+            </div>
+        </div>
+
+        <div class="menu-section">
+            <h3>Sort</h3>
+            <div class="menu-buttons">
+                <button id="organizeByColorBtn"><i class="fas fa-palette"></i>By Color</button>
+                <button id="sortByNameBtn"><i class="fas fa-sort-alpha-down"></i>By Name</button>
+                <button id="sortByDateBtn"><i class="fas fa-calendar"></i>By Date</button>
+                <button id="sortBySizeBtn"><i class="fas fa-weight-hanging"></i>By Size</button>
+                <button id="restoreOrderBtn"><i class="fas fa-undo"></i>Restore Order</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="static-header"></div>
+    
+    <div class="content-wrapper">
+        <div class="controls">
+            <button id="openDirectoryBtn">Select Folder</button>
+            <button id="addFilesBtn" class="secondary">Add Individual Files</button>
+            <button id="clearGalleryBtn">Clear Gallery</button>
+            <button id="reloadGalleryBtn" class="secondary">Reload Gallery</button>
+            <button id="openMetadataEditorBtn" class="secondary">PNG Metadata Editor</button>
+            <div class="size-control">
+                <label for="thumbnailSize">Thumbnail Size:</label>
+                <input type="range" id="thumbnailSize" min="100" max="400" value="200" step="10">
+                <span id="sizeValue">200px</span>
+            </div>
+        </div>
+        
+        <input type="file" id="fileInput" accept="image/*" multiple style="display: none;">
+        <input type="file" id="directoryInput" webkitdirectory directory multiple style="display: none;">
+        
+        <div class="directory-info" id="directoryInfo">
+            No folder selected. Images will be remembered until you clear your browser data.
+        </div>
+        
+        <div class="toast-container" id="toastContainer"></div>
+        
+        <div class="gallery" id="gallery">
+            <!-- Thumbnails will be generated by JavaScript -->
+        </div>
+        
+        <div id="imageModal" class="modal">
+            <span class="modal-close">&times;</span>
+            <div class="modal-nav modal-prev" id="prevButton">&#10094;</div>
+            <div class="modal-nav modal-next" id="nextButton">&#10095;</div>
+            <div class="modal-content-wrapper">
+                <img class="modal-content" id="modalImage">
+            </div>
+            <button id="openInEditorBtn" class="modal-editor-btn">Open in PNG Editor</button>
+        </div>
+        
+        <div id="metadataModal" class="metadata-modal">
+            <div class="metadata-content">
+                <h2 style="color: #e0e0e0; margin-bottom: 20px;">Add PNG Metadata</h2>
+                <div class="metadata-field">
+                    <label for="title">Title</label>
+                    <input type="text" id="metaTitle" placeholder="Image title">
+                </div>
+                <div class="metadata-field">
+                    <label for="author">Author</label>
+                    <input type="text" id="metaAuthor" placeholder="Author name">
+                </div>
+                <div class="metadata-field">
+                    <label for="description">Description</label>
+                    <input type="text" id="metaDescription" placeholder="Image description">
+                </div>
+                <div class="metadata-field">
+                    <label for="keywords">Keywords (comma-separated)</label>
+                    <input type="text" id="metaKeywords" placeholder="keyword1, keyword2, ...">
+                </div>
+                <div class="metadata-buttons">
+                    <button onclick="cancelMetadata()">Cancel</button>
+                    <button onclick="confirmMetadata()" style="background-color: #4CAF50;">Convert & Save</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PNG Editor Modal -->
+        <div id="pngEditorModal" class="modal">
+            <div class="modal-content" style="width: 90%; max-width: 1200px; height: 90vh; overflow: hidden;">
+                <div class="modal-header">
+                    <h3>PNG Metadata Editor</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <iframe id="pngEditorFrame" style="width: 100%; height: calc(100% - 50px); border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Store file handles and metadata
+        let imageEntries = [];
+        let directoryHandle = null;
+        let originalImageOrder = [];
+        
+        // DOM elements
+        const gallery = document.getElementById('gallery');
+        const statusMessage = document.getElementById('statusMessage');
+        const directoryInfo = document.getElementById('directoryInfo');
+        const openDirectoryBtn = document.getElementById('openDirectoryBtn');
+        const addFilesBtn = document.getElementById('addFilesBtn');
+        const clearGalleryBtn = document.getElementById('clearGalleryBtn');
+        const openMetadataEditorBtn = document.getElementById('openMetadataEditorBtn');
+
+        // Check if button exists
+        if (!openMetadataEditorBtn) {
+            console.error('PNG Editor button not found in the DOM');
+        } else {
+            console.log('PNG Editor button found and connected');
+        }
+        
+        // Initialize the gallery from stored data
+        async function initGallery() {
+            // Try to load saved directory handle
+            try {
+                const handleStr = localStorage.getItem('directoryHandle');
+                if (handleStr) {
+                    directoryHandle = await navigator.storage.restoreData(handleStr);
+                    directoryInfo.textContent = `Viewing files from: ${directoryHandle.name}`;
+                }
+            } catch (e) {
+                console.error("Could not restore directory handle:", e);
+            }
+            
+            // Load saved image entries
+            const savedEntries = localStorage.getItem('imageEntries');
+            if (savedEntries) {
+                imageEntries = JSON.parse(savedEntries);
+                // Store original order when initializing
+                originalImageOrder = [...imageEntries];
+                refreshGallery();
+            }
+            
+            if (imageEntries.length === 0) {
+                showStatus("No images in gallery. Select a folder or add individual files.", "info");
+            }
+        }
+        
+        // Open directory picker
+        openDirectoryBtn.addEventListener('click', () => {
+            document.getElementById('directoryInput').click();
+        });
+        
+        document.getElementById('directoryInput').addEventListener('change', async (event) => {
+            try {
+                const files = Array.from(event.target.files);
+                
+                // Show loading message
+                showStatus(`Processing ${files.length} files...`, "info");
+                
+                // Clear current entries since we're selecting a new directory
+                imageEntries = [];
+                
+                let addedCount = 0;
+                const directoryName = files[0]?.webkitRelativePath.split('/')[0] || 'Selected Folder';
+                
+                for (const file of files) {
+                    if (file.type.startsWith('image/')) {
+                        // Update status periodically
+                        if (addedCount % 5 === 0) {
+                            showStatus(`Processing files: ${addedCount}/${files.length}...`, "info");
+                        }
+                        
+                        // Convert file to base64
+                        const base64Data = await readFileAsBase64(file);
+                        
+                        // Extract basic metadata
+                        const metadata = {
+                            "Name": file.name,
+                            "Size": formatFileSize(file.size),
+                            "Type": file.type,
+                            "Last Modified": new Date(file.lastModified).toLocaleString()
+                        };
+                        
+                        // Add to our entries
+                        imageEntries.push({
+                            handle: {
+                                name: file.name,
+                                size: file.size,
+                                lastModified: file.lastModified
+                            },
+                            base64Data: base64Data,
+                            metadata: metadata
+                        });
+                        addedCount++;
+                    }
+                }
+                
+                // Update originalImageOrder with the new entries
+                originalImageOrder = [...imageEntries];
+                
+                // Update UI
+                directoryInfo.textContent = `Viewing files from: ${directoryName}`;
+                saveImageEntries();
+                refreshGallery();
+                updateTagsList();
+                showStatus(`Found ${addedCount} image files`, "success");
+                
+                // Reset the input
+                event.target.value = '';
+                
+            } catch (error) {
+                showStatus("Error accessing directory: " + error.message, "error");
+                console.error(error);
+            }
+        });
+        
+        // Add individual files
+        addFilesBtn.addEventListener('click', () => {
+            document.getElementById('fileInput').click();
+        });
+        
+        document.getElementById('fileInput').addEventListener('change', async (event) => {
+            try {
+                const files = Array.from(event.target.files);
+                let addedCount = 0;
+                
+                for (const file of files) {
+                    if (file.type.startsWith('image/')) {  // Accept any image MIME type
+                        console.log('Loading file:', file.name, 'Type:', file.type); // Debug log
+                        
+                        // Convert file to base64
+                        const base64Data = await readFileAsBase64(file);
+                        
+                        // Extract basic metadata
+                        const metadata = {
+                            "Name": file.name,
+                            "Size": formatFileSize(file.size),
+                            "Type": file.type,
+                            "Last Modified": new Date(file.lastModified).toLocaleString()
+                        };
+
+                        // If it's a PNG, try to read its metadata
+                        if (file.type === 'image/png') {
+                            try {
+                                // Load PNG metadata module if not loaded
+                                if (typeof PNGMetadata === 'undefined') {
+                                    await new Promise((resolve, reject) => {
+                                        const script = document.createElement('script');
+                                        script.src = 'png-metadata.js';
+                                        script.onload = resolve;
+                                        script.onerror = reject;
+                                        document.head.appendChild(script);
+                                    });
+                                }
+                                
+                                const pngMetadata = new PNGMetadata();
+                                const blob = await fetch(base64Data).then(r => r.blob());
+                                const pngMetadataObj = await pngMetadata.readMetadata(blob);
+                                
+                                console.log('Read PNG metadata:', pngMetadataObj); // Debug log
+                                
+                                // Add PNG metadata to our metadata object
+                                Object.assign(metadata, pngMetadataObj);
+                            } catch (error) {
+                                console.warn('Failed to read PNG metadata:', error);
+                            }
+                        }
+                        
+                        console.log('Final metadata:', metadata); // Debug log
+                        
+                        // Add to our entries
+                        imageEntries.push({
+                            handle: {
+                                name: file.name,
+                                size: file.size,
+                                lastModified: file.lastModified
+                            },
+                            base64Data: base64Data,
+                            metadata: metadata
+                        });
+                        addedCount++;
+                    }
+                }
+                
+                // Update originalImageOrder with the new entries
+                originalImageOrder = [...imageEntries];
+                
+                saveImageEntries();
+                refreshGallery();
+                updateTagsList();
+                showStatus(`Added ${addedCount} image file(s)`, "success");
+                
+                // Reset the input so the same file can be selected again
+                event.target.value = '';
+            } catch (error) {
+                showStatus("Error adding files: " + error.message, "error");
+                console.error(error);
+            }
+        });
+        
+        // Clear gallery
+        clearGalleryBtn.addEventListener('click', () => {
+            imageEntries = [];
+            directoryHandle = null;
+            localStorage.removeItem('imageEntries');
+            localStorage.removeItem('directoryHandle');
+            refreshGallery();
+            directoryInfo.textContent = "No folder selected. Images will be remembered until you clear your browser data.";
+            showStatus("Gallery cleared", "info");
+        });
+        
+        // Open PNG Metadata Editor
+        openMetadataEditorBtn.addEventListener('click', () => {
+            console.log('PNG Editor button clicked');
+            const modal = document.getElementById('pngEditorModal');
+            const frame = document.getElementById('pngEditorFrame');
+            
+            console.log('Modal element:', modal);
+            console.log('Frame element:', frame);
+            
+            if (!modal || !frame) {
+                console.error('Modal or frame elements not found');
+                return;
+            }
+            
+            // Load the editor in the iframe
+            frame.src = 'png-editor.html';
+            
+            // Show the modal
+            modal.style.display = 'block';
+            console.log('Modal display set to block');
+            
+            // Add close button handler
+            const closeBtn = modal.querySelector('.modal-close');
+            if (closeBtn) {
+                closeBtn.onclick = () => {
+                    console.log('Close button clicked');
+                    modal.style.display = 'none';
+                };
+            }
+            
+            // Close when clicking outside
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    console.log('Modal background clicked');
+                    modal.style.display = 'none';
+                }
+            };
+        });
+        
+        // Refresh the gallery display
+        function refreshGallery(searchTerms = []) {
+            if (imageEntries.length === 0) {
+                gallery.innerHTML = '<p>No images found.</p>';
+                return 0;
+            }
+
+            // Clear existing thumbnails
+            gallery.innerHTML = '';
+
+            // Create new thumbnails
+            imageEntries.forEach((entry, index) => {
+                const thumbnail = document.createElement('div');
+                thumbnail.className = 'thumbnail visible';
+                thumbnail.onclick = () => showFullImage(index);
+                
+                const img = document.createElement('img');
+                img.className = 'thumbnail-img';
+                
+                if (entry.base64Data) {
+                    img.src = entry.base64Data;
+                } else if (entry.objectUrl) {
+                    img.src = entry.objectUrl;
+                } else {
+                    img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+                }
+                
+                img.alt = entry.metadata.Name || 'Image';
+                
+                // Add select button instead of checkbox
+                const selectBtn = document.createElement('button');
+                selectBtn.className = 'select-btn';
+                selectBtn.textContent = 'Select';
+                selectBtn.onclick = (e) => {
+                    e.stopPropagation(); // Prevent thumbnail click when clicking button
+                    selectBtn.classList.toggle('selected');
+                    thumbnail.classList.toggle('selected');
+                    selectBtn.textContent = selectBtn.classList.contains('selected') ? 'Selected' : 'Select';
+                    updateSelectedCount();
+                };
+                thumbnail.appendChild(selectBtn);
+                
+                thumbnail.appendChild(img);
+                gallery.appendChild(thumbnail);
+            });
+
+            // Filter and update visibility
+            let matchCount = 0;
+            const thumbnails = gallery.getElementsByClassName('thumbnail');
+            
+            Array.from(thumbnails).forEach((thumbnail, index) => {
+                const entry = imageEntries[index];
+                let isMatch = true;
+
+                if (searchTerms.length > 0) {
+                    const metadata = entry.metadata;
+                    
+                    // Check if any search term matches
+                    isMatch = searchTerms.some(term => {
+                        const termLower = term.toLowerCase();
+                        
+                        // Search in basic metadata
+                        if (metadata.Name?.toLowerCase().includes(termLower)) {
+                            return true;
+                        }
+                        
+                        // Search in PNG metadata fields
+                        const searchableFields = ['Title', 'Author', 'Description', 'Keywords'];
+                        return searchableFields.some(field => {
+                            const value = metadata[field];
+                            if (!value) return false;
+                            
+                            if (field === 'Keywords' && value.includes(',')) {
+                                return value.split(',')
+                                    .map(k => k.trim().toLowerCase())
+                                    .some(k => k.includes(termLower));
+                            }
+                            return value.toLowerCase().includes(termLower);
+                        });
+                    });
+                }
+
+                // Update thumbnail visibility
+                if (isMatch) {
+                    thumbnail.classList.remove('hidden');
+                    thumbnail.classList.add('visible');
+                    thumbnail.classList.add('search-match');
+                    setTimeout(() => thumbnail.classList.remove('search-match'), 1000);
+                    matchCount++;
+                } else {
+                    thumbnail.classList.remove('visible');
+                    thumbnail.classList.add('hidden');
+                    thumbnail.classList.remove('search-match');
+                }
+            });
+
+            return matchCount;
+        }
+        
+        // Show full image
+        async function showFullImage(index) {
+            try {
+                const entry = imageEntries[index];
+                const modal = document.getElementById('imageModal');
+                const modalImg = document.getElementById('modalImage');
+                const closeBtn = document.querySelector('.modal-close');
+                const prevBtn = document.getElementById('prevButton');
+                const nextBtn = document.getElementById('nextButton');
+                const editorBtn = document.getElementById('openInEditorBtn');
+                
+                // Display the modal first (without background)
+                modal.style.display = "block";
+                
+                // Force a reflow to enable the transition
+                modal.offsetHeight;
+                
+                // Add show classes to trigger transitions
+                modal.classList.add('show');
+                modalImg.classList.add('show');
+                closeBtn.classList.add('show');
+                prevBtn.classList.add('show');
+                nextBtn.classList.add('show');
+                
+                // Set the image source based on available data
+                if (entry.base64Data) {
+                    modalImg.src = entry.base64Data;
+                } else if (entry.objectUrl) {
+                    modalImg.src = entry.objectUrl;
+                }
+
+                // Extract colors and set ambient background
+                const colors = await extractImageColors(modalImg);
+                if (colors.length >= 2) {
+                    // Create a more dynamic gradient with color variations
+                    const gradient = `linear-gradient(45deg, 
+                        ${colors[0]} 0%, 
+                        ${colors[1]} 25%, 
+                        ${colors[2] || colors[0]} 50%, 
+                        ${colors[1]} 75%, 
+                        ${colors[0]} 100%)`;
+                    modal.style.backgroundImage = gradient;
+                }
+                
+                // Show/hide PNG editor button based on image type
+                if (entry.metadata.Type && entry.metadata.Type.includes('png')) {
+                    editorBtn.classList.add('show');
+                    editorBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        
+                        // Use base64Data if available, otherwise use objectUrl
+                        const imageSource = entry.base64Data || entry.objectUrl;
+                        editImage(this);
+                    };
+                } else {
+                    editorBtn.classList.remove('show');
+                }
+                
+                // Navigation function
+                const navigate = async (direction) => {
+                    let newIndex = index + direction;
+                    if (newIndex >= imageEntries.length) newIndex = 0;
+                    if (newIndex < 0) newIndex = imageEntries.length - 1;
+                    
+                    // Update image source with fade effect
+                    modalImg.style.opacity = 0;
+                    
+                    // Extract colors for the new image
+                    const newEntry = imageEntries[newIndex];
+                    const newImage = new Image();
+                    if (newEntry.base64Data) {
+                        newImage.src = newEntry.base64Data;
+                    } else if (newEntry.objectUrl) {
+                        newImage.src = newEntry.objectUrl;
+                    }
+                    
+                    // Wait for the new image to load
+                    await new Promise((resolve) => {
+                        newImage.onload = resolve;
+                    });
+                    
+                    // Extract colors and update background
+                    const colors = await extractImageColors(newImage);
+                    if (colors.length >= 2) {
+                        const gradient = `linear-gradient(45deg, 
+                            ${colors[0]} 0%, 
+                            ${colors[1]} 25%, 
+                            ${colors[2] || colors[0]} 50%, 
+                            ${colors[1]} 75%, 
+                            ${colors[0]} 100%)`;
+                        modal.style.backgroundImage = gradient;
+                    }
+                    
+                    // Update image and restore opacity
+                    modalImg.src = newImage.src;
+                    modalImg.style.opacity = 1;
+                    index = newIndex;
+                    
+                    // Update PNG editor button visibility
+                    if (newEntry.metadata.Type && newEntry.metadata.Type.includes('png')) {
+                        editorBtn.classList.add('show');
+                        editorBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            const imageSource = newEntry.base64Data || newEntry.objectUrl;
+                            editImage(this);
+                        };
+                    } else {
+                        editorBtn.classList.remove('show');
+                    }
+                };
+                
+                // Close modal function
+                const closeModal = () => {
+                    modal.classList.remove('show');
+                    modalImg.classList.remove('show');
+                    closeBtn.classList.remove('show');
+                    prevBtn.classList.remove('show');
+                    nextBtn.classList.remove('show');
+                    editorBtn.classList.remove('show');
+                    
+                    // Wait for transition to complete before hiding the modal
+                    setTimeout(() => {
+                        modal.style.display = "none";
+                    }, 300);
+                    
+                    // Remove keyboard listener
+                    document.removeEventListener('keydown', keyHandler);
+                };
+                
+                // Keyboard handler
+                const keyHandler = (e) => {
+                    if (e.key === 'Escape') closeModal();
+                    if (e.key === 'ArrowLeft') navigate(-1);
+                    if (e.key === 'ArrowRight') navigate(1);
+                };
+                
+                // Add keyboard listener
+                document.addEventListener('keydown', keyHandler);
+                
+                // Click handlers
+                modal.onclick = function(e) {
+                    if (e.target === modal || e.target === modalImg || e.target.className.includes('modal-close')) {
+                        closeModal();
+                    } else if (e.target === prevBtn) {
+                        navigate(-1);
+                    } else if (e.target === nextBtn) {
+                        navigate(1);
+                    }
+                };
+                
+                // Add click handlers for navigation buttons
+                prevBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    navigate(-1);
+                };
+                
+                nextBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    navigate(1);
+                };
+                
+                // Optionally check if original file still exists (just for user feedback)
+                if (directoryHandle) {
+                    try {
+                        await directoryHandle.getFileHandle(entry.handle.name);
+                    } catch (error) {
+                        showStatus("Original file no longer exists in selected folder", "info");
+                    }
+                }
+                
+            } catch (error) {
+                showStatus("Error displaying image: " + error.message, "error");
+                console.error(error);
+            }
+        }
+        
+        // Delete an image
+        async function deleteImage(index) {
+            // Revoke the object URL to free memory
+            URL.revokeObjectURL(imageEntries[index].objectUrl);
+            
+            // Remove from array
+            imageEntries.splice(index, 1);
+            
+            // Save and refresh
+            saveImageEntries();
+            refreshGallery();
+            showStatus("Image removed", "info");
+        }
+        
+        // Save image entries to localStorage
+        function saveImageEntries() {
+            localStorage.setItem('imageEntries', JSON.stringify(imageEntries));
+        }
+        
+        // Helper function to format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // Helper function to escape HTML special characters
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+        
+        // Function to show status messages as toasts
+        function showStatus(message, type = "info") {
+            const toastContainer = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            // Add appropriate icon based on type
+            const icon = document.createElement('i');
+            icon.className = type === "error" ? "fas fa-exclamation-circle" :
+                           type === "success" ? "fas fa-check-circle" :
+                           type === "warning" ? "fas fa-exclamation-triangle" :
+                           "fas fa-info-circle";
+            toast.appendChild(icon);
+            
+            // Add message content
+            const content = document.createElement('div');
+            content.className = 'toast-content';
+            content.textContent = message;
+            toast.appendChild(content);
+            
+            // Add close button
+            const closeBtn = document.createElement('div');
+            closeBtn.className = 'toast-close';
+            closeBtn.innerHTML = '&times;';
+            closeBtn.onclick = () => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            };
+            toast.appendChild(closeBtn);
+            
+            // Add to container
+            toastContainer.appendChild(toast);
+            
+            // Show toast
+            setTimeout(() => toast.classList.add('show'), 10);
+            
+            // Auto-remove after delay (except for errors)
+            if (type !== "error") {
+                setTimeout(() => {
+                    if (toast.parentElement) {
+                        toast.classList.remove('show');
+                        setTimeout(() => toast.remove(), 300);
+                    }
+                }, type === "success" ? 3000 : 5000);
+            }
+        }
+        
+        // Polyfill for storing file handles in localStorage
+        if (!navigator.storage) {
+            navigator.storage = {
+                storeData: async (handle) => {
+                    return JSON.stringify({
+                        name: handle.name,
+                        kind: handle.kind
+                    });
+                },
+                restoreData: async (handleStr) => {
+                    const data = JSON.parse(handleStr);
+                    return {
+                        name: data.name,
+                        kind: data.kind,
+                        getFileHandle: async (name) => {
+                            return window.showOpenFilePicker({
+                                suggestedName: name
+                            }).then(handles => handles[0]);
+                        },
+                        values: async function*() {
+                            const fileHandle = await window.showOpenFilePicker({
+                                suggestedName: this.name
+                            });
+                            yield fileHandle[0];
+                        }
+                    };
+                }
+            };
+        }
+        
+        // Initialize the gallery on load
+        window.addEventListener('load', () => {
+            initGallery();
+            
+            // Add hamburger menu functionality
+            const hamburgerIcon = document.querySelector('.hamburger-icon');
+            const hamburgerMenu = document.querySelector('.hamburger-menu');
+            
+            hamburgerIcon.addEventListener('click', () => {
+                hamburgerIcon.classList.toggle('show');
+                hamburgerMenu.classList.toggle('show');
+            });
+            
+            // Close menu when clicking outside
+            document.addEventListener('click', (e) => {
+                if (hamburgerMenu.classList.contains('show') && 
+                    !hamburgerMenu.contains(e.target) && 
+                    !hamburgerIcon.contains(e.target)) {
+                    hamburgerIcon.classList.remove('show');
+                    hamburgerMenu.classList.remove('show');
+                }
+            });
+            
+            // Close menu when pressing Escape
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && hamburgerMenu.classList.contains('show')) {
+                    hamburgerIcon.classList.remove('show');
+                    hamburgerMenu.classList.remove('show');
+                }
+            });
+            
+            // Add reload button functionality
+            const reloadGalleryBtn = document.getElementById('reloadGalleryBtn');
+            reloadGalleryBtn.addEventListener('click', async () => {
+                showStatus("Reloading gallery...", "info");
+                
+                // Refresh the gallery display
+                refreshGallery();
+                
+                // Update the tags list
+                updateTagsList();
+                
+                showStatus("Gallery reloaded", "success");
+            });
+            
+            // Enhanced search functionality
+            const searchContainer = document.querySelector('.search-container');
+            const searchHighlight = document.querySelector('.search-highlight');
+            let searchTimeout;
+            
+            // Add keyboard handler for Escape key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    // Clear search if there's any search text
+                    if (searchInput.value) {
+                        searchInput.value = '';
+                        searchContainer.classList.remove('active');
+                        searchHighlight.classList.remove('show');
+                        refreshGallery([]); // Clear search results
+                    }
+                    
+                    // Clear any selected images
+                    const selectedButtons = document.querySelectorAll('.select-btn.selected');
+                    selectedButtons.forEach(button => {
+                        button.classList.remove('selected');
+                        button.closest('.thumbnail').classList.remove('selected');
+                    });
+                    updateSelectedCount();
+                }
+            });
+            
+            searchInput.addEventListener('focus', () => {
+                searchContainer.classList.add('active');
+            });
+            
+            searchInput.addEventListener('blur', () => {
+                if (!searchInput.value) {
+                    searchContainer.classList.remove('active');
+                }
+            });
+
+            searchInput.addEventListener('input', (e) => {
+                // Clear previous timeout
+                if (searchTimeout) {
+                    clearTimeout(searchTimeout);
+                }
+                
+                const query = e.target.value.trim();
+                searchContainer.classList.toggle('active', query.length > 0);
+                
+                // Set new timeout to avoid refreshing on every keystroke
+                searchTimeout = setTimeout(() => {
+                    // Split the search query into individual terms by comma
+                    const searchTerms = query.split(',').map(term => term.trim()).filter(term => term.length > 0);
+                    const matchCount = refreshGallery(searchTerms);
+                    
+                    // Update search highlight counter
+                    if (query) {
+                        searchHighlight.textContent = `${matchCount} matches`;
+                        searchHighlight.classList.add('show');
+                    } else {
+                        searchHighlight.classList.remove('show');
+                    }
+                    
+                    // Add pulse animation to matching thumbnails
+                    if (matchCount > 0) {
+                        document.querySelectorAll('.thumbnail').forEach(thumb => {
+                            thumb.classList.add('search-match');
+                            setTimeout(() => thumb.classList.remove('search-match'), 1000);
+                        });
+                    }
+                }, 300);
+            });
+
+            // Initialize thumbnail size control
+            const thumbnailSize = document.getElementById('thumbnailSize');
+            const sizeValue = document.getElementById('sizeValue');
+            
+            // Load saved size from localStorage or use default
+            const savedSize = localStorage.getItem('thumbnailSize') || 200;
+            thumbnailSize.value = savedSize;
+            sizeValue.textContent = `${savedSize}px`;
+            document.documentElement.style.setProperty('--thumbnail-size', `${savedSize}px`);
+            
+            // Update size when slider changes
+            thumbnailSize.addEventListener('input', (e) => {
+                const size = e.target.value;
+                sizeValue.textContent = `${size}px`;
+                document.documentElement.style.setProperty('--thumbnail-size', `${size}px`);
+                localStorage.setItem('thumbnailSize', size);
+            });
+
+            // Initialize tags list
+            updateTagsList();
+            
+            // Update tags when gallery changes
+            const originalRefreshGallery = refreshGallery;
+            refreshGallery = function(searchTerms = []) {
+                const result = originalRefreshGallery(searchTerms);
+                updateTagsList();
+                return result;
+            };
+
+            // Initialize color organization button
+            const organizeByColorBtn = document.getElementById('organizeByColorBtn');
+            organizeByColorBtn.addEventListener('click', organizeByColor);
+
+            // Add sorting button handlers
+            document.getElementById('sortByNameBtn').addEventListener('click', sortByName);
+            document.getElementById('sortByDateBtn').addEventListener('click', sortByDate);
+            document.getElementById('sortBySizeBtn').addEventListener('click', sortBySize);
+            document.getElementById('restoreOrderBtn').addEventListener('click', restoreOrder);
+        });
+        
+        // Add these new functions to handle metadata
+        let pendingConversion = null;
+        
+        // Function to show metadata editor modal for conversion
+        function showMetadataEditor(imageUrl, filename) {
+            // Check if it's a PDF (we need to fetch it first)
+            // Handle base64 data
+            if (typeof imageUrl === 'string' && imageUrl.startsWith('data:')) {
+                // For base64 data, we can check the MIME type directly
+                if (imageUrl.startsWith('data:application/pdf')) {
+                    showStatus("Cannot convert PDF files to PNG directly. Please convert to PNG first using an external tool.", "error");
+                    return;
+                }
+                
+                pendingConversion = { imageUrl, filename };
+                document.getElementById('metadataModal').style.display = 'block';
+                
+                // Clear previous values
+                document.getElementById('metaTitle').value = '';
+                document.getElementById('metaAuthor').value = '';
+                document.getElementById('metaDescription').value = '';
+                document.getElementById('metaKeywords').value = '';
+                return;
+            }
+            
+            // For object URLs, fetch and check the blob
+            fetch(imageUrl)
+                .then(response => response.blob())
+                .then(blob => {
+                    if (blob.type === 'application/pdf') {
+                        showStatus("Cannot convert PDF files to PNG directly. Please convert to PNG first using an external tool.", "error");
+                        return;
+                    }
+                    
+                    pendingConversion = { imageUrl, filename };
+                    document.getElementById('metadataModal').style.display = 'block';
+                    
+                    // Clear previous values
+                    document.getElementById('metaTitle').value = '';
+                    document.getElementById('metaAuthor').value = '';
+                    document.getElementById('metaDescription').value = '';
+                    document.getElementById('metaKeywords').value = '';
+                })
+                .catch(error => {
+                    console.error('Error checking file type:', error);
+                    showStatus('Error checking file type', 'error');
+                });
+        }
+        
+        // Open the PNG metadata editor for a specific image
+        function openMetadataEditor(imageUrl, filename) {
+            // Show status to user
+            showStatus('Opening PNG editor...', 'info');
+            
+            // Check if imageUrl is a base64 string
+            if (typeof imageUrl === 'string' && imageUrl.startsWith('data:image/png;base64,')) {
+                // For base64 data, simply pass it to the editor
+                window.location.href = `png-editor.html?file=${encodeURIComponent(imageUrl)}&filename=${encodeURIComponent(filename || 'image.png')}`;
+                return;
+            }
+            
+            // For object URLs, fetch and convert to blob first
+            fetch(imageUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    // Double-check it's a PNG file
+                    if (!blob.type.includes('png')) {
+                        // If it's not a PNG, check if we can convert it
+                        if (blob.type.startsWith('image/')) {
+                            showStatus('Converting to PNG before opening editor...', 'info');
+                            
+                            // Convert image to PNG first
+                            const img = new Image();
+                            img.onload = () => {
+                                // Create canvas and draw image
+                                const canvas = document.createElement('canvas');
+                                canvas.width = img.naturalWidth;
+                                canvas.height = img.naturalHeight;
+                                const ctx = canvas.getContext('2d');
+                                ctx.drawImage(img, 0, 0);
+                                
+                                // Convert to PNG
+                                canvas.toBlob(pngBlob => {
+                                    const fileObj = new File([pngBlob], filename || 'converted.png', { type: 'image/png' });
+                                    const fileUrl = URL.createObjectURL(fileObj);
+                                    
+                                    // Navigate to the metadata editor with the converted PNG
+                                    window.location.href = `png-editor.html?file=${encodeURIComponent(fileUrl)}&filename=${encodeURIComponent(filename || 'converted.png')}`;
+                                }, 'image/png');
+                            };
+                            img.onerror = () => {
+                                showStatus('Error converting image to PNG', 'error');
+                            };
+                            img.src = URL.createObjectURL(blob);
+                        } else {
+                            showStatus('Only PNG files can be edited with the metadata editor', 'error');
+                        }
+                        return;
+                    }
+                    
+                    const fileObj = new File([blob], filename || 'image.png', { type: 'image/png' });
+                    const fileUrl = URL.createObjectURL(fileObj);
+                    
+                    // Navigate to the metadata editor with the file URL as a parameter
+                    window.location.href = `png-editor.html?file=${encodeURIComponent(fileUrl)}&filename=${encodeURIComponent(filename || 'image.png')}`;
+                })
+                .catch(error => {
+                    console.error('Error preparing file for metadata editor:', error);
+                    showStatus(`Error opening metadata editor: ${error.message}`, 'error');
+                });
+        }
+        
+        function cancelMetadata() {
+            document.getElementById('metadataModal').style.display = 'none';
+            pendingConversion = null;
+        }
+        
+        async function confirmMetadata() {
+            if (!pendingConversion) return;
+            
+            const metadata = {
+                title: document.getElementById('metaTitle').value,
+                author: document.getElementById('metaAuthor').value,
+                description: document.getElementById('metaDescription').value,
+                keywords: document.getElementById('metaKeywords').value,
+                software: 'Image Gallery',
+                creationTime: new Date().toISOString()
+            };
+            
+            await convertToPNG(pendingConversion.imageUrl, pendingConversion.filename, metadata);
+            document.getElementById('metadataModal').style.display = 'none';
+            pendingConversion = null;
+            
+            // Clear the form
+            document.getElementById('metaTitle').value = '';
+            document.getElementById('metaAuthor').value = '';
+            document.getElementById('metaDescription').value = '';
+            document.getElementById('metaKeywords').value = '';
+        }
+        
+        // Update the convertToPNG function to handle metadata
+        async function convertToPNG(imageUrl, filename, metadata = null) {
+            try {
+                let blob;
+                
+                // Handle base64 data
+                if (typeof imageUrl === 'string' && imageUrl.startsWith('data:')) {
+                    const response = await fetch(imageUrl);
+                    blob = await response.blob();
+                } else {
+                    // For object URLs, fetch and get blob
+                    const response = await fetch(imageUrl);
+                    blob = await response.blob();
+                }
+                
+                // Check if it's a PDF file (we can't convert PDFs in browser)
+                if (blob.type === 'application/pdf') {
+                    showStatus("Cannot convert PDF files to PNG directly. Please convert to PNG first using an external tool.", "error");
+                    return;
+                }
+                
+                const img = new Image();
+                
+                await new Promise((resolve, reject) => {
+                    img.onload = resolve;
+                    img.onerror = reject;
+                    img.src = URL.createObjectURL(blob);
+                });
+                
+                const canvas = document.createElement('canvas');
+                canvas.width = img.naturalWidth;
+                canvas.height = img.naturalHeight;
+                
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                
+                // Convert to PNG with metadata
+                const pngBlob = await new Promise(resolve => {
+                    canvas.toBlob(resolve, 'image/png');
+                });
+                
+                // If we have metadata, add it to the PNG
+                const finalBlob = metadata ? await addMetadataToPng(pngBlob, metadata) : pngBlob;
+                
+                const downloadUrl = URL.createObjectURL(finalBlob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = filename.replace(/\.[^/.]+$/, '') + '.png';
+                
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                setTimeout(() => {
+                    URL.revokeObjectURL(downloadUrl);
+                }, 100);
+                
+                showStatus("Image converted and download started", "success");
+            } catch (error) {
+                showStatus("Error converting image: " + error.message, "error");
+                console.error(error);
+            }
+        }
+        
+        // Add metadata to PNG using our PNG Metadata class
+        async function addMetadataToPng(pngBlob, metadata) {
+            try {
+                // Create a PNG Metadata object if not already loaded
+                if (typeof PNGMetadata === 'undefined') {
+                    // Load the script dynamically
+                    await new Promise((resolve, reject) => {
+                        const script = document.createElement('script');
+                        script.src = 'png-metadata.js';
+                        script.onload = resolve;
+                        script.onerror = reject;
+                        document.head.appendChild(script);
+                    });
+                }
+                
+                const pngMetadata = new PNGMetadata();
+                
+                // Convert simple metadata object to standard PNG metadata format
+                const pngMetadataObj = {
+                    'Title': metadata.title || '',
+                    'Author': metadata.author || '',
+                    'Description': metadata.description || '',
+                    'Keywords': metadata.keywords || '',
+                    'Software': 'Image Gallery',
+                    'Creation Time': new Date().toISOString()
+                };
+                
+                // Add metadata to the PNG
+                return await pngMetadata.writeMetadata(pngBlob, pngMetadataObj);
+            } catch (error) {
+                console.error('Error adding metadata to PNG:', error);
+                // Return the original blob if metadata addition fails
+                return pngBlob;
+            }
+        }
+        
+        // Helper function to read a file as base64
+        function readFileAsBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Function to extract dominant colors from an image
+        async function extractImageColors(img) {
+            return new Promise((resolve) => {
+                // Create a canvas to analyze the image
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Set canvas size to a reasonable size for analysis
+                canvas.width = 100;
+                canvas.height = 100;
+                
+                // Draw the image
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                
+                // Get image data
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imageData.data;
+                
+                // Sample colors from the image
+                const colorCounts = {};
+                const step = 4; // Sample every 4th pixel
+                
+                for (let i = 0; i < data.length; i += step * 4) {
+                    const r = data[i];
+                    const g = data[i + 1];
+                    const b = data[i + 2];
+                    const a = data[i + 3];
+                    
+                    // Skip transparent pixels
+                    if (a < 128) continue;
+                    
+                    // Convert to hex
+                    const color = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+                    
+                    // Count color occurrences
+                    colorCounts[color] = (colorCounts[color] || 0) + 1;
+                }
+                
+                // Sort colors by frequency and get top 3
+                const sortedColors = Object.entries(colorCounts)
+                    .sort(([, a], [, b]) => b - a)
+                    .slice(0, 3)
+                    .map(([color]) => color);
+                
+                // If we don't have enough colors, fill with black
+                while (sortedColors.length < 3) {
+                    sortedColors.push('#000000');
+                }
+                
+                resolve(sortedColors);
+            });
+        }
+
+        // Add this function after the existing functions
+        function updateTagsList() {
+            const tagsList = document.getElementById('tagsList');
+            const tagsCount = document.querySelector('.tags-count');
+            tagsList.innerHTML = '';
+            
+            // Collect all keywords from all images
+            const keywordMap = new Map();
+            
+            imageEntries.forEach(entry => {
+                const keywords = entry.metadata.Keywords;
+                if (keywords) {
+                    const keywordArray = keywords.split(',').map(k => k.trim()).filter(k => k);
+                    keywordArray.forEach(keyword => {
+                        keywordMap.set(keyword, (keywordMap.get(keyword) || 0) + 1);
+                    });
+                }
+            });
+            
+            // Sort keywords by frequency (most used first)
+            const sortedKeywords = Array.from(keywordMap.entries())
+                .sort(([, a], [, b]) => b - a)
+                .map(([keyword]) => keyword);
+            
+            // Update tags count
+            tagsCount.textContent = `${sortedKeywords.length} unique keywords`;
+            
+            // Create tag elements
+            sortedKeywords.forEach(keyword => {
+                const count = keywordMap.get(keyword);
+                const tag = document.createElement('span');
+                tag.className = 'tag';
+                tag.innerHTML = `${keyword}<span class="tag-count">${count}</span>`;
+                
+                tag.onclick = () => {
+                    // Toggle active state
+                    tag.classList.toggle('active');
+                    
+                    // Update search input
+                    const searchInput = document.getElementById('searchInput');
+                    const currentSearch = searchInput.value.split(',').map(term => term.trim());
+                    
+                    if (tag.classList.contains('active')) {
+                        // Add keyword to search
+                        if (!currentSearch.includes(keyword)) {
+                            currentSearch.push(keyword);
+                        }
+                    } else {
+                        // Remove keyword from search
+                        const index = currentSearch.indexOf(keyword);
+                        if (index > -1) {
+                            currentSearch.splice(index, 1);
+                        }
+                    }
+                    
+                    // Update search input and trigger search
+                    searchInput.value = currentSearch.join(', ');
+                    searchInput.dispatchEvent(new Event('input'));
+                    
+                    // Save active state to localStorage
+                    const activeTags = JSON.parse(localStorage.getItem('activeTags') || '[]');
+                    if (tag.classList.contains('active')) {
+                        if (!activeTags.includes(keyword)) {
+                            activeTags.push(keyword);
+                        }
+                    } else {
+                        const index = activeTags.indexOf(keyword);
+                        if (index > -1) {
+                            activeTags.splice(index, 1);
+                        }
+                    }
+                    localStorage.setItem('activeTags', JSON.stringify(activeTags));
+                };
+                
+                // Restore active state from localStorage
+                const activeTags = JSON.parse(localStorage.getItem('activeTags') || '[]');
+                if (activeTags.includes(keyword)) {
+                    tag.classList.add('active');
+                }
+                
+                tagsList.appendChild(tag);
+            });
+        }
+
+        // Add function to update selected count
+        function updateSelectedCount() {
+            const selectedCount = document.querySelectorAll('.select-btn.selected').length;
+            const toastContainer = document.getElementById('toastContainer');
+            
+            // Check if unselect toast already exists
+            let toast = document.querySelector('.toast.unselect-toast');
+            
+            if (selectedCount > 0) {
+                if (!toast) {
+                    // Create new toast only if it doesn't exist
+                    toast = document.createElement('div');
+                    toast.className = 'toast unselect-toast';
+                    
+                    // Add icon
+                    const icon = document.createElement('i');
+                    icon.className = 'fas fa-times-circle';
+                    toast.appendChild(icon);
+                    
+                    // Add message content
+                    const content = document.createElement('div');
+                    content.className = 'toast-content';
+                    content.textContent = `${selectedCount} image(s) selected`;
+                    toast.appendChild(content);
+                    
+                    // Add button container
+                    const buttonContainer = document.createElement('div');
+                    buttonContainer.style.display = 'flex';
+                    buttonContainer.style.gap = '8px';
+                    
+                    // Add unselect button
+                    const unselectBtn = document.createElement('button');
+                    unselectBtn.className = 'toast-button';
+                    unselectBtn.textContent = 'Unselect All';
+                    unselectBtn.onclick = unselectAllImages;
+                    buttonContainer.appendChild(unselectBtn);
+                    
+                    // Add remove button
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'toast-button';
+                    removeBtn.textContent = 'Remove Selected';
+                    removeBtn.onclick = removeSelectedImages;
+                    buttonContainer.appendChild(removeBtn);
+                    
+                    toast.appendChild(buttonContainer);
+                    
+                    // Add to container
+                    toastContainer.appendChild(toast);
+                    
+                    // Show toast with animation
+                    setTimeout(() => toast.classList.add('show'), 10);
+                } else {
+                    // Just update the count text if toast exists
+                    const content = toast.querySelector('.toast-content');
+                    content.textContent = `${selectedCount} image(s) selected`;
+                }
+            } else if (toast) {
+                // Remove toast if no images are selected
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }
+        }
+
+        // Function to remove selected images
+        function removeSelectedImages() {
+            const selectedButtons = document.querySelectorAll('.select-btn.selected');
+            const selectedCount = selectedButtons.length;
+            
+            if (selectedCount === 0) return;
+            
+            // Remove the images from the imageEntries array
+            selectedButtons.forEach(button => {
+                const thumbnail = button.closest('.thumbnail');
+                const index = Array.from(thumbnail.parentElement.children).indexOf(thumbnail);
+                imageEntries.splice(index, 1);
+            });
+            
+            // Save and refresh
+            saveImageEntries();
+            refreshGallery();
+            
+            // Remove the toast
+            const toast = document.querySelector('.toast.unselect-toast');
+            if (toast) {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }
+            
+            // Show success message
+            showStatus(`${selectedCount} image(s) removed`, "success");
+        }
+
+        // Function to unselect all images
+        function unselectAllImages() {
+            const selectedButtons = document.querySelectorAll('.select-btn.selected');
+            selectedButtons.forEach(button => {
+                button.classList.remove('selected');
+                button.closest('.thumbnail').classList.remove('selected');
+            });
+            updateSelectedCount();
+        }
+
+        // Add this function after the existing functions
+        async function organizeByColor() {
+            const organizeByColorBtn = document.getElementById('organizeByColorBtn');
+            const isOrganized = organizeByColorBtn.classList.contains('active');
+            
+            if (isOrganized) {
+                // Restore original order
+                imageEntries = [...originalImageOrder];
+                organizeByColorBtn.classList.remove('active');
+                saveImageEntries();
+                refreshGallery();
+                showStatus("Gallery order restored", "info");
+                return;
+            }
+            
+            try {
+                showStatus("Analyzing image colors...", "info");
+                
+                // Deactivate all other sort buttons
+                const buttons = document.querySelectorAll('.menu-buttons button');
+                buttons.forEach(btn => btn.classList.remove('active'));
+                
+                // Create a map to store color data for each image
+                const colorData = new Map();
+                
+                // Process each image
+                for (let i = 0; i < imageEntries.length; i++) {
+                    const entry = imageEntries[i];
+                    const img = new Image();
+                    
+                    // Wait for image to load
+                    await new Promise((resolve, reject) => {
+                        img.onload = resolve;
+                        img.onerror = reject;
+                        img.src = entry.base64Data;
+                    });
+                    
+                    // Extract colors
+                    const colors = await extractImageColors(img);
+                    
+                    // Get the dominant color (first color from the extracted colors)
+                    const dominantColor = colors[0];
+                    
+                    // Convert hex to RGB
+                    const r = parseInt(dominantColor.slice(1, 3), 16);
+                    const g = parseInt(dominantColor.slice(3, 5), 16);
+                    const b = parseInt(dominantColor.slice(5, 7), 16);
+                    
+                    // Calculate HSL values for better color categorization
+                    const max = Math.max(r, g, b);
+                    const min = Math.min(r, g, b);
+                    const delta = max - min;
+                    
+                    // Calculate hue (0-360)
+                    let hue;
+                    if (delta === 0) {
+                        hue = 0; // Grayscale
+                    } else if (max === r) {
+                        hue = 60 * (((g - b) / delta) % 6);
+                    } else if (max === g) {
+                        hue = 60 * ((b - r) / delta + 2);
+                    } else {
+                        hue = 60 * ((r - g) / delta + 4);
+                    }
+                    
+                    // Normalize hue to 0-360
+                    if (hue < 0) hue += 360;
+                    
+                    // Calculate saturation (0-100)
+                    const saturation = max === 0 ? 0 : (delta / max) * 100;
+                    
+                    // Calculate lightness (0-100)
+                    const lightness = (max + min) / 2 * 100 / 255;
+                    
+                    // Determine color category based on hue
+                    let colorCategory;
+                    if (saturation < 10 || lightness > 90) {
+                        colorCategory = 'grayscale';
+                    } else {
+                        // Define rainbow color ranges
+                        if (hue < 30 || hue >= 330) colorCategory = 'red';
+                        else if (hue < 60) colorCategory = 'orange';
+                        else if (hue < 90) colorCategory = 'yellow';
+                        else if (hue < 150) colorCategory = 'green';
+                        else if (hue < 240) colorCategory = 'blue';
+                        else if (hue < 270) colorCategory = 'indigo';
+                        else colorCategory = 'violet';
+                    }
+                    
+                    // Store color data
+                    colorData.set(i, {
+                        colorCategory,
+                        hue,
+                        saturation,
+                        lightness,
+                        dominantColor,
+                        colors,
+                        entry
+                    });
+                    
+                    // Update status periodically
+                    if (i % 5 === 0) {
+                        showStatus(`Analyzing colors: ${i + 1}/${imageEntries.length}...`, "info");
+                    }
+                }
+                
+                // Define rainbow color order
+                const colorOrder = ['red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'violet', 'grayscale'];
+                
+                // Sort entries by color category and then by hue
+                const sortedIndices = Array.from(colorData.entries())
+                    .sort(([, a], [, b]) => {
+                        // First sort by color category
+                        const categoryIndexA = colorOrder.indexOf(a.colorCategory);
+                        const categoryIndexB = colorOrder.indexOf(b.colorCategory);
+                        if (categoryIndexA !== categoryIndexB) {
+                            return categoryIndexA - categoryIndexB;
+                        }
+                        
+                        // For grayscale, sort by lightness
+                        if (a.colorCategory === 'grayscale') {
+                            return b.lightness - a.lightness;
+                        }
+                        
+                        // For colored images, sort by hue within the category
+                        return a.hue - b.hue;
+                    })
+                    .map(([index]) => index);
+                
+                // Reorder image entries
+                const sortedEntries = sortedIndices.map(index => imageEntries[index]);
+                imageEntries = sortedEntries;
+                
+                // Save and refresh
+                saveImageEntries();
+                refreshGallery();
+                
+                // Mark button as active
+                organizeByColorBtn.classList.add('active');
+                showStatus("Gallery organized by rainbow colors", "success");
+            } catch (error) {
+                showStatus("Error organizing by color: " + error.message, "error");
+                console.error(error);
+            }
+        }
+
+        // Cache DOM elements for better performance
+        const sortButtons = document.querySelectorAll('.menu-buttons button');
+        const sortByNameBtn = document.getElementById('sortByNameBtn');
+        const sortByDateBtn = document.getElementById('sortByDateBtn');
+        const sortBySizeBtn = document.getElementById('sortBySizeBtn');
+
+        function deactivateAllSorts() {
+            sortButtons.forEach(btn => btn.classList.remove('active'));
+        }
+
+        function sortByName() {
+            const isSorted = sortByNameBtn.classList.contains('active');
+            
+            if (isSorted) {
+                imageEntries = [...originalImageOrder];
+                sortByNameBtn.classList.remove('active');
+                refreshGallery();
+                showStatus("Gallery order restored", "info");
+                return;
+            }
+            
+            deactivateAllSorts();
+            
+            imageEntries.sort((a, b) => {
+                const nameA = a.metadata.Name.toLowerCase();
+                const nameB = b.metadata.Name.toLowerCase();
+                return nameA.localeCompare(nameB);
+            });
+            
+            refreshGallery();
+            sortByNameBtn.classList.add('active');
+            showStatus("Gallery sorted by name", "success");
+        }
+
+        function sortByDate() {
+            const isSorted = sortByDateBtn.classList.contains('active');
+            
+            if (isSorted) {
+                imageEntries = [...originalImageOrder];
+                sortByDateBtn.classList.remove('active');
+                refreshGallery();
+                showStatus("Gallery order restored", "info");
+                return;
+            }
+            
+            deactivateAllSorts();
+            
+            imageEntries.sort((a, b) => b.handle.lastModified - a.handle.lastModified);
+            
+            refreshGallery();
+            sortByDateBtn.classList.add('active');
+            showStatus("Gallery sorted by date (newest first)", "success");
+        }
+
+        function sortBySize() {
+            const isSorted = sortBySizeBtn.classList.contains('active');
+            
+            if (isSorted) {
+                imageEntries = [...originalImageOrder];
+                sortBySizeBtn.classList.remove('active');
+                refreshGallery();
+                showStatus("Gallery order restored", "info");
+                return;
+            }
+            
+            deactivateAllSorts();
+            
+            imageEntries.sort((a, b) => b.handle.size - a.handle.size);
+            
+            refreshGallery();
+            sortBySizeBtn.classList.add('active');
+            showStatus("Gallery sorted by size (largest first)", "success");
+        }
+
+        function restoreOrder() {
+            deactivateAllSorts();
+            imageEntries = [...originalImageOrder];
+            refreshGallery();
+            showStatus("Gallery order restored", "success");
+        }
+
+        // Add click handlers for keyword buttons
+        function addKeywordButtonHandlers() {
+            const keywordButtons = document.querySelectorAll('.keyword-button');
+            keywordButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Toggle active state
+                    button.classList.toggle('active');
+                    
+                    // Update filter state
+                    const keyword = button.textContent.trim();
+                    if (button.classList.contains('active')) {
+                        activeFilters.add(keyword);
+                    } else {
+                        activeFilters.delete(keyword);
+                    }
+                    
+                    // Apply filters
+                    applyFilters();
+                });
+            });
+        }
+
+        // Load keywords from server
+        async function loadKeywords() {
+            try {
+                const response = await fetch('/api/keywords');
+                if (!response.ok) throw new Error('Failed to load keywords');
+                const keywords = await response.json();
+                
+                const tagsContainer = document.getElementById('tags-container');
+                tagsContainer.innerHTML = '';
+                
+                keywords.forEach(keyword => {
+                    const button = document.createElement('button');
+                    button.className = 'keyword-button';
+                    button.textContent = keyword;
+                    tagsContainer.appendChild(button);
+                });
+                
+                // Add click handlers to the new buttons
+                addKeywordButtonHandlers();
+            } catch (error) {
+                console.error('Error loading keywords:', error);
+                showStatus('Failed to load keywords', 'error');
+            }
+        }
+
+        function editImage(entry) {
+            // Get the image source (base64 or object URL)
+            const imageSource = entry.base64Data || entry.objectUrl;
+            const filename = entry.handle.name || 'image.png';
+            
+            // Show the editor modal
+            const modal = document.getElementById('pngEditorModal');
+            const frame = document.getElementById('pngEditorFrame');
+            
+            // Show the modal
+            modal.style.display = 'block';
+            
+            // Wait for the iframe to load
+            frame.onload = () => {
+                // Send the image data to the editor
+                frame.contentWindow.postMessage({
+                    type: 'loadImage',
+                    imageUrl: imageSource,
+                    filename: filename
+                }, '*');
+            };
+            
+            // Load the editor if not already loaded
+            if (frame.src !== 'png-editor.html') {
+                frame.src = 'png-editor.html';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PNG Metadata Editor</title>
+    <!-- Add Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            padding: 0;
+            color: #e0e0e0;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .static-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: rgba(45, 45, 45, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4),
+                        0 0 0 1px rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .static-header h1 {
+            margin: 0;
+            color: #ffffff;
+            font-size: 24px;
+        }
+        
+        .content-wrapper {
+            padding-top: 60px;
+            padding-left: 20px;
+            padding-right: 20px;
+            height: calc(100vh - 60px);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1, h2, h3 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+        
+        .editor-panel {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 30px;
+            background: #2d2d2d;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .image-preview {
+            flex: 1;
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .image-preview img {
+            max-width: 100%;
+            max-height: calc(100% - 60px);
+            object-fit: contain;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .file-info {
+            width: 100%;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        
+        .file-info div {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #444;
+        }
+        
+        .file-info div:last-child {
+            border-bottom: none;
+        }
+        
+        .metadata-form {
+            flex: 1;
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .metadata-form::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .metadata-form::-webkit-scrollbar-track {
+            background: #2d2d2d;
+            border-radius: 4px;
+        }
+        
+        .metadata-form::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 4px;
+        }
+        
+        .metadata-form::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #e0e0e0;
+        }
+        
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #444;
+            border-radius: 6px;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+        
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 10px 15px;
+            background-color: #424242;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:hover {
+            background-color: #616161;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        button.secondary {
+            background-color: #2d2d2d;
+        }
+        
+        button.secondary:hover {
+            background-color: #424242;
+        }
+        
+        button.success {
+            background-color: #4CAF50;
+        }
+        
+        button.success:hover {
+            background-color: #45a049;
+        }
+        
+        button.danger {
+            background-color: #f44336;
+        }
+        
+        button.danger:hover {
+            background-color: #da190b;
+        }
+        
+        button:disabled {
+            background-color: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        /* Loading spinner for buttons */
+        button.loading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+        
+        button.loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            top: calc(50% - 8px);
+            right: 10px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .status-message {
+            text-align: center;
+            margin: 10px 0;
+            padding: 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            background: rgba(45, 45, 45, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .status-message.success {
+            background: rgba(76, 175, 80, 0.9);
+            color: white;
+        }
+        
+        .status-message.error {
+            background: rgba(244, 67, 54, 0.9);
+            color: white;
+        }
+        
+        .status-message.info {
+            background: rgba(45, 45, 45, 0.9);
+            color: #e0e0e0;
+        }
+        
+        .custom-field {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .custom-field input {
+            flex: 1;
+        }
+        
+        .custom-field button {
+            padding: 8px;
+            line-height: 1;
+        }
+        
+        /* Form actions area */
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 25px;
+            border-top: 1px solid #444;
+            padding-top: 20px;
+        }
+        
+        .form-actions button {
+            padding: 12px 20px;
+            font-weight: bold;
+        }
+        
+        .form-actions .save-btn {
+            flex: 1;
+            max-width: 200px;
+        }
+        
+        .add-gallery-btn {
+            background-color: #424242 !important;
+            color: white !important;
+            position: relative;
+            padding-left: 30px !important;
+        }
+        
+        .add-gallery-btn:hover {
+            background-color: #616161 !important;
+        }
+        
+        .add-gallery-btn::before {
+            content: "+";
+            position: absolute;
+            left: 12px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .editor-panel {
+                flex-direction: column;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .form-actions .save-btn {
+                max-width: none;
+                margin-top: 10px;
+            }
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        table th, table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #444;
+        }
+        
+        table th {
+            background-color: #333;
+        }
+        
+        /* Tabs for metadata viewer mode */
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #444;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #2d2d2d;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+        }
+        
+        .tab.active {
+            background-color: #424242;
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #444;
+            color: #999;
+            font-size: 12px;
+        }
+        
+        footer a {
+            color: #e0e0e0;
+            text-decoration: none;
+        }
+        
+        footer a:hover {
+            color: #ffffff;
+        }
+
+        .hamburger-icon {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            width: 35px;
+            height: 35px;
+            background: #424242;
+            border-radius: 6px;
+            cursor: pointer;
+            z-index: 1002;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .hamburger-icon:hover {
+            background: #616161;
+            transform: scale(1.05);
+        }
+
+        .hamburger-icon span {
+            display: block;
+            width: 20px;
+            height: 2px;
+            background: #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .hamburger-icon.show span:nth-child(1) {
+            transform: translateY(7px) rotate(45deg);
+        }
+
+        .hamburger-icon.show span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger-icon.show span:nth-child(3) {
+            transform: translateY(-7px) rotate(-45deg);
+        }
+
+        .hamburger-menu {
+            position: fixed;
+            top: 0;
+            left: -250px;
+            width: 250px;
+            height: 100vh;
+            background: rgba(45, 45, 45, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.4),
+                        0 0 0 1px rgba(255, 255, 255, 0.1);
+            transition: left 0.3s ease;
+            z-index: 1000;
+            padding: 15px;
+            padding-top: 60px;
+            overflow-y: auto;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .hamburger-menu.show {
+            left: 0;
+        }
+
+        .menu-section {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 1001;
+        }
+
+        .menu-section:first-child {
+            margin-top: 10px;
+        }
+
+        .menu-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .menu-section h3 {
+            color: #e0e0e0;
+            font-size: 14px;
+            margin-bottom: 12px;
+            padding-left: 8px;
+            border-left: 2px solid rgba(255, 255, 255, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .menu-buttons button {
+            width: 100%;
+            text-align: left;
+            padding: 10px 12px;
+            background: rgba(66, 66, 66, 0.6);
+            color: #e0e0e0;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .menu-buttons button i {
+            width: 20px;
+            text-align: center;
+            font-size: 16px;
+            color: #909090;
+            transition: color 0.2s ease;
+        }
+
+        .menu-buttons button:hover {
+            background: rgba(97, 97, 97, 0.7);
+            transform: translateX(3px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .menu-buttons button:hover i {
+            color: #e0e0e0;
+        }
+
+        .menu-buttons button.secondary {
+            background: rgba(45, 45, 45, 0.6);
+        }
+
+        .menu-buttons button.secondary:hover {
+            background: rgba(66, 66, 66, 0.7);
+        }
+
+        .menu-buttons button.active {
+            background: rgba(76, 175, 80, 0.6) !important;
+            color: white !important;
+        }
+
+        .menu-buttons button.active i {
+            color: white !important;
+        }
+
+        .menu-buttons button.active:hover {
+            background: rgba(76, 175, 80, 0.7) !important;
+        }
+
+        /* Toast styles */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: rgba(45, 45, 45, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: #e0e0e0;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+            max-width: 300px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.error {
+            background: rgba(244, 67, 54, 0.9);
+        }
+
+        .toast.success {
+            background: rgba(76, 175, 80, 0.9);
+        }
+
+        .toast.warning {
+            background: rgba(255, 152, 0, 0.9);
+        }
+
+        .toast i {
+            font-size: 18px;
+        }
+
+        .toast.error i {
+            color: #ffebee;
+        }
+
+        .toast.success i {
+            color: #e8f5e9;
+        }
+
+        .toast.warning i {
+            color: #fff3e0;
+        }
+
+        .toast-content {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .toast-close {
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+        }
+
+        .toast-close:hover {
+            opacity: 1;
+        }
+
+        /* URL Input Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1003;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            position: relative;
+            background: #2d2d2d;
+            margin: 15% auto;
+            padding: 20px;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #e0e0e0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #e0e0e0;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+        }
+
+        .url-input-group {
+            margin-bottom: 20px;
+        }
+
+        .url-input-group input {
+            width: 100%;
+            padding: 12px;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .url-input-group input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .modal-actions button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .modal-actions button.cancel {
+            background: #424242;
+            color: #e0e0e0;
+        }
+
+        .modal-actions button.load {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .modal-actions button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-actions button.cancel:hover {
+            background: #616161;
+        }
+
+        .modal-actions button.load:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="static-header">
+        <h1>PNG Metadata Editor</h1>
+    </div>
+
+    <div class="content-wrapper">
+        <div class="hamburger-icon">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+
+        <div class="hamburger-menu">
+            <div class="menu-section">
+                <h3>File</h3>
+                <div class="menu-buttons">
+                    <button id="openFileBtn"><i class="fas fa-folder-open"></i>Open PNG File</button>
+                    <button id="loadFromUrlBtn"><i class="fas fa-link"></i>Load from URL</button>
+                    <button id="viewGalleryBtn" class="secondary"><i class="fas fa-images"></i>View Gallery</button>
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <h3>Actions</h3>
+                <div class="menu-buttons">
+                    <button id="saveFileBtn" class="success" disabled><i class="fas fa-save"></i>Save PNG</button>
+                    <button id="addToGalleryBtn" class="secondary" disabled><i class="fas fa-plus"></i>Add to Gallery</button>
+                </div>
+            </div>
+        </div>
+        
+        <input type="file" id="fileInput" accept="image/png" style="display: none;">
+        
+        <div class="toast-container" id="toastContainer"></div>
+        
+        <!-- Add URL Modal -->
+        <div id="urlModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Load Image from URL</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="url-input-group">
+                    <input type="url" id="urlInput" placeholder="Enter image URL" autocomplete="off">
+                </div>
+                <div class="modal-actions">
+                    <button class="cancel">Cancel</button>
+                    <button class="load">Load Image</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="editor-panel">
+            <div class="image-preview">
+                <h3>Image Preview</h3>
+                <img id="previewImage" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" alt="Preview">
+            </div>
+            
+            <div class="metadata-form">
+                <h3>Edit Metadata</h3>
+                <form id="metadataForm">
+                    <div class="form-group">
+                        <label for="keywords">Keywords (comma-separated)</label>
+                        <input type="text" id="keywords" name="Keywords" placeholder="keyword1, keyword2, ...">
+                    </div>
+                    <div class="form-actions">
+                        <button id="saveFileBtn2" class="success" disabled><i class="fas fa-save"></i>Save PNG</button>
+                        <button id="addToGalleryBtn2" class="secondary" disabled><i class="fas fa-plus"></i>Add to Gallery</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>PNG Metadata Editor | <a href="gallery.html" style="color: #64b5f6;">Image Gallery</a></p>
+    </footer>
+    
+    <!-- Include PNG metadata module -->
+    <script src="png-metadata.js"></script>
+    
+    <script>
+        // Initialize the PNG metadata editor
+        const pngMetadata = new PNGMetadata();
+        let currentFile = null;
+        let currentFileHandle = null;
+        let hasFileSystemAccess = false;
+        
+        // Check if File System Access API is available and we're not in a cross-origin iframe
+        function checkFileSystemAccessSupport() {
+            try {
+                if (!('showSaveFilePicker' in window)) {
+                    return false;
+                }
+                
+                // Check if we're in a cross-origin iframe
+                if (window !== window.top) {
+                    const isCrossOrigin = (() => {
+                        try {
+                            // If this doesn't throw, we're same-origin
+                            return window.top.location.origin !== window.location.origin;
+                        } catch (e) {
+                            // If it throws, we're cross-origin
+                            return true;
+                        }
+                    })();
+                    
+                    if (isCrossOrigin) {
+                        console.log('Cross-origin iframe detected, File System Access API will be disabled');
+                        return false;
+                    }
+                }
+                
+                return true;
+            } catch (e) {
+                console.error('Error checking File System Access support:', e);
+                return false;
+            }
+        }
+        
+        // Check if we can use the File System Access API
+        hasFileSystemAccess = checkFileSystemAccessSupport();
+        
+        // DOM Elements
+        const fileInput = document.getElementById('fileInput');
+        const previewImage = document.getElementById('previewImage');
+        const metadataForm = document.getElementById('metadataForm');
+        const openFileBtn = document.getElementById('openFileBtn');
+        const loadFromUrlBtn = document.getElementById('loadFromUrlBtn');
+        const saveFileBtn = document.getElementById('saveFileBtn');
+        const saveFileBtn2 = document.getElementById('saveFileBtn2');
+        const addToGalleryBtn = document.getElementById('addToGalleryBtn');
+        const addToGalleryBtn2 = document.getElementById('addToGalleryBtn2');
+        const viewGalleryBtn = document.getElementById('viewGalleryBtn');
+        const statusMessage = document.getElementById('statusMessage');
+        const urlModal = document.getElementById('urlModal');
+        const urlInput = document.getElementById('urlInput');
+        
+        // Update button text based on browser support
+        if (!hasFileSystemAccess) {
+            saveFileBtn.textContent = 'Save';
+            saveFileBtn2.textContent = 'Save';
+            
+            // Show appropriate message based on why File System Access API is not being used
+            if ('showSaveFilePicker' in window) {
+                showStatus('Note: Direct file saving is disabled due to security restrictions. Files will be downloaded instead.', 'info');
+            } else {
+                showStatus('Note: Your browser doesn\'t support saving files directly. Files will be downloaded instead.', 'info');
+            }
+        }
+        
+        // Update tooltips for Add to Gallery buttons
+        document.getElementById('addToGalleryBtn').title = 'Add this image directly to the gallery without saving to disk';
+        
+        // Open file button click handler
+        openFileBtn.addEventListener('click', async () => {
+            // Just use the standard file input if File System Access API is not available or we're in a cross-origin iframe
+            if (!hasFileSystemAccess) {
+                fileInput.click();
+                return;
+            }
+            
+            try {
+                const options = {
+                    types: [{
+                        description: 'PNG Files',
+                        accept: {'image/png': ['.png']}
+                    }],
+                    multiple: false
+                };
+                
+                const [fileHandle] = await window.showOpenFilePicker(options);
+                currentFileHandle = fileHandle;
+                
+                const file = await fileHandle.getFile();
+                await loadPngFile(file);
+                showStatus('File loaded successfully', 'success');
+            } catch (error) {
+                console.error('Error opening file:', error);
+                
+                // If we get a cross-origin error or any other error, fall back to the standard file input
+                if (error.name === 'SecurityError' || 
+                    error.message?.includes('Cross origin') || 
+                    error.name !== 'AbortError') {
+                    
+                    // If it's a security error, disable File System Access API for future operations
+                    if (error.name === 'SecurityError' || error.message?.includes('Cross origin')) {
+                        hasFileSystemAccess = false;
+                        saveFileBtn.textContent = 'Save';
+                        showStatus('Using standard file picker due to security restrictions', 'info');
+                    }
+                    
+                    // Fall back to standard file input
+                    fileInput.click();
+                } 
+                // Only show error for non-abort errors (abort just means user cancelled)
+                else if (error.name !== 'AbortError') {
+                    showStatus(`Error opening file: ${error.message}`, 'error');
+                }
+            }
+        });
+        
+        // File input change handler (fallback for browsers without File System Access API)
+        fileInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            try {
+                // Clear the file handle since we're using the standard file input
+                currentFileHandle = null;
+                
+                await loadPngFile(file);
+                showStatus('File loaded successfully', 'success');
+            } catch (error) {
+                showStatus(`Error loading file: ${error.message}`, 'error');
+                console.error(error);
+            }
+        });
+        
+        // Load PNG file
+        async function loadPngFile(file) {
+            // Check if it's a PDF file
+            if (file.type === 'application/pdf') {
+                showStatus('PDF files are not supported directly. Please convert to PNG first.', 'error');
+                return;
+            }
+            
+            // If it's not a PNG file, convert it
+            if (!file.type.includes('png')) {
+                try {
+                    showStatus('Converting image to PNG format...', 'info');
+                    const convertedFile = await convertToPNG(file);
+                    currentFile = convertedFile;
+                    saveFileBtn.disabled = false;
+                    saveFileBtn2.disabled = false;
+                    addToGalleryBtn.disabled = false;
+                    addToGalleryBtn2.disabled = false;
+                    
+                    // Create object URL for preview
+                    const objectUrl = URL.createObjectURL(convertedFile);
+                    previewImage.src = objectUrl;
+                    
+                    showStatus('Image converted and loaded successfully', 'success');
+                } catch (error) {
+                    showStatus(`Error converting image: ${error.message}`, 'error');
+                    console.error(error);
+                    return;
+                }
+            } else {
+                currentFile = file;
+                saveFileBtn.disabled = false;
+                saveFileBtn2.disabled = false;
+                addToGalleryBtn.disabled = false;
+                addToGalleryBtn2.disabled = false;
+                
+                // Create object URL for preview
+                const objectUrl = URL.createObjectURL(file);
+                previewImage.src = objectUrl;
+            }
+            
+            try {
+                // Load metadata
+                const metadata = await pngMetadata.readMetadata(currentFile);
+                populateMetadataForm(metadata);
+            } catch (error) {
+                showStatus(`Error reading PNG metadata: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+        
+        // Function to convert image to PNG format
+        async function convertToPNG(file) {
+            return new Promise((resolve, reject) => {
+                // Create a FileReader to read the image file
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    // Create an image element
+                    const img = new Image();
+                    img.onload = () => {
+                        // Create a canvas element
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        
+                        // Draw the image on the canvas
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0);
+                        
+                        // Convert canvas to blob
+                        canvas.toBlob((blob) => {
+                            if (blob) {
+                                // Create a new File object with the PNG blob
+                                const pngFile = new File([blob], file.name.replace(/\.[^/.]+$/, '') + '.png', {
+                                    type: 'image/png'
+                                });
+                                resolve(pngFile);
+                            } else {
+                                reject(new Error('Failed to convert image to PNG'));
+                            }
+                        }, 'image/png');
+                    };
+                    
+                    img.onerror = () => {
+                        reject(new Error('Failed to load image'));
+                    };
+                    
+                    // Load the image from the FileReader result
+                    img.src = e.target.result;
+                };
+                
+                reader.onerror = () => {
+                    reject(new Error('Failed to read file'));
+                };
+                
+                // Read the file as Data URL
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        // Populate metadata form
+        function populateMetadataForm(metadata) {
+            // Clear form first
+            const inputs = metadataForm.querySelectorAll('input, textarea');
+            inputs.forEach(input => {
+                if (input.name) {
+                    input.value = metadata[input.name] || '';
+                }
+            });
+        }
+        
+        // Save file button click handlers
+        saveFileBtn.addEventListener('click', saveWithMetadata);
+        saveFileBtn2.addEventListener('click', saveWithMetadata);
+        
+        // Add to gallery button click handlers
+        addToGalleryBtn.addEventListener('click', addToGallery);
+        addToGalleryBtn2.addEventListener('click', addToGallery);
+        
+        // Function to add the current PNG to the gallery
+        async function addToGallery(event) {
+            if (!currentFile) {
+                showStatus('No file loaded', 'error');
+                return;
+            }
+            
+            try {
+                // Add loading state to the clicked button
+                const button = event.target;
+                button.classList.add('loading');
+                button.textContent = 'Adding...';
+                
+                // Show status immediately
+                showStatus('Adding to gallery...', 'info');
+                
+                // Check if it's a PNG file
+                if (!currentFile.type.includes('png')) {
+                    showStatus('Only PNG files can be added to the gallery.', 'error');
+                    button.classList.remove('loading');
+                    button.textContent = 'Add to Gallery';
+                    return;
+                }
+                
+                // Apply current metadata to the file
+                const metadata = collectMetadata();
+                const fileWithMetadata = await pngMetadata.writeMetadata(currentFile, metadata);
+                
+                // Get the filename (use current file name or a default)
+                const savedFileName = currentFile.name || 'metadata_edited.png';
+                
+                // Convert the Blob to Base64 string instead of using object URL
+                const base64Data = await blobToBase64(fileWithMetadata);
+                
+                // Load the existing gallery entries from localStorage
+                let imageEntries = [];
+                const savedEntries = localStorage.getItem('imageEntries');
+                if (savedEntries) {
+                    imageEntries = JSON.parse(savedEntries);
+                }
+                
+                // Create basic metadata for the gallery entry
+                const galleryMetadata = {
+                    "Name": savedFileName,
+                    "Size": formatFileSize(fileWithMetadata.size),
+                    "Type": fileWithMetadata.type,
+                    "Last Modified": new Date().toLocaleString()
+                };
+                
+                // Add metadata from form to gallery metadata
+                Object.entries(metadata).forEach(([key, value]) => {
+                    if (value) {
+                        galleryMetadata[key] = value;
+                    }
+                });
+                
+                // Add the new entry to the gallery with proper structure
+                imageEntries.push({
+                    handle: {
+                        name: savedFileName,
+                        size: fileWithMetadata.size,
+                        lastModified: new Date().getTime()
+                    },
+                    base64Data: base64Data,
+                    metadata: galleryMetadata,
+                    objectUrl: null  // Ensure objectUrl is null for new entries
+                });
+                
+                // Save to localStorage
+                localStorage.setItem('imageEntries', JSON.stringify(imageEntries));
+                
+                // Remove loading state
+                button.classList.remove('loading');
+                button.textContent = 'Add to Gallery';
+                
+                // Show success message with link to gallery
+                showStatus('✅ Image added to gallery! <a href="gallery.html" style="color: #81c784; text-decoration: underline;">View Gallery</a>', 'success');
+                
+            } catch (error) {
+                // Remove loading state in case of error
+                if (event && event.target) {
+                    event.target.classList.remove('loading');
+                    event.target.textContent = 'Add to Gallery';
+                }
+                
+                showStatus(`Error adding to gallery: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+        
+        // Helper function to convert blob to base64 string
+        function blobToBase64(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        }
+        
+        // Save with metadata function
+        async function saveWithMetadata(event) {
+            if (!currentFile) {
+                showStatus('No file loaded', 'error');
+                return;
+            }
+            
+            try {
+                // Add loading state to the clicked button
+                const button = event.target;
+                button.classList.add('loading');
+                button.textContent = 'Saving...';
+                
+                // Show saving status immediately
+                showStatus('Saving metadata...', 'info');
+                
+                // Check if it's a PNG file
+                if (!currentFile.type.includes('png')) {
+                    showStatus('Only PNG files can be saved with metadata.', 'error');
+                    button.classList.remove('loading');
+                    button.textContent = hasFileSystemAccess ? 'Save PNG' : 'Save';
+                    return;
+                }
+                
+                const metadata = collectMetadata();
+                const newFile = await pngMetadata.writeMetadata(currentFile, metadata);
+                
+                let saveResult = false;
+                
+                // Only try to use File System Access API if it's available
+                if (hasFileSystemAccess) {
+                    // Try to save without a dialog using the File System Access API
+                    saveResult = await trySaveWithoutDialog(newFile);
+                }
+                
+                // Update currentFile with the new file that has metadata
+                currentFile = new File([newFile], currentFile.name, { type: 'image/png' });
+                
+                // Remove loading state
+                button.classList.remove('loading');
+                button.textContent = hasFileSystemAccess ? 'Save PNG' : 'Save';
+                
+                if (saveResult) {
+                    showStatus('✅ PNG file saved successfully!', 'success');
+                } else {
+                    // Fall back to standard download if the non-dialog approach fails
+                    saveFileWithDialog(newFile, currentFile.name);
+                    showStatus('✅ PNG file downloaded successfully!', 'success');
+                }
+            } catch (error) {
+                // Remove loading state in case of error
+                if (event && event.target) {
+                    event.target.classList.remove('loading');
+                    event.target.textContent = hasFileSystemAccess ? 'Save PNG' : 'Save';
+                }
+                
+                showStatus(`Error saving file: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+        
+        // Try to save the file without showing a dialog using File System Access API
+        async function trySaveWithoutDialog(blob) {
+            // Check if the File System Access API is available and we're not in a cross-origin iframe
+            if (!hasFileSystemAccess) {
+                console.log('File System Access API not available or disabled');
+                return false;
+            }
+            
+            try {
+                let fileHandle;
+                
+                // If we have a stored file handle, use it
+                if (currentFileHandle) {
+                    fileHandle = currentFileHandle;
+                    
+                    // Verify we have permission to write to this file
+                    const options = { mode: 'readwrite' };
+                    if (!(await verifyPermission(fileHandle, options))) {
+                        console.log('No permission to write to the file');
+                        return false;
+                    }
+                } else {
+                    // Otherwise, get a new file handle but with a picker dialog
+                    // This will show a dialog once, but subsequent saves won't
+                    const options = {
+                        suggestedName: currentFile.name,
+                        types: [{
+                            description: 'PNG Files',
+                            accept: {'image/png': ['.png']}
+                        }]
+                    };
+                    
+                    fileHandle = await window.showSaveFilePicker(options);
+                    // Store the file handle for future saves
+                    currentFileHandle = fileHandle;
+                }
+                
+                // Get a writable stream and write the blob data
+                const writable = await fileHandle.createWritable();
+                await writable.write(blob);
+                await writable.close();
+                
+                return true;
+            } catch (error) {
+                console.error('Failed to save file without dialog:', error);
+                
+                // If we get a cross-origin error, disable File System Access API for future operations
+                if (error.name === 'SecurityError' || error.message?.includes('Cross origin')) {
+                    hasFileSystemAccess = false;
+                    saveFileBtn.textContent = 'Save';
+                    showStatus('Using download method due to security restrictions', 'info');
+                }
+                
+                // User may have cancelled the save dialog, or any other error
+                return false;
+            }
+        }
+        
+        // Verify if we have permission to read/write to a file
+        async function verifyPermission(fileHandle, options = { mode: 'read' }) {
+            if ((await fileHandle.queryPermission(options)) === 'granted') {
+                return true;
+            }
+            
+            // Request permission if not already granted
+            return (await fileHandle.requestPermission(options)) === 'granted';
+        }
+        
+        // Save file with a browser dialog (fallback)
+        function saveFileWithDialog(blob, filename) {
+            const blobURL = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = blobURL;
+            a.download = filename;
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(blobURL);
+        }
+        
+        // Legacy download function (keeping for reference but using new save methods)
+        function downloadFile(blob, filename) {
+            saveFileWithDialog(blob, filename);
+        }
+        
+        // Legacy download function (keeping for reference but using new save methods)
+        function saveFileDirectly(blob, filename) {
+            saveFileWithDialog(blob, filename);
+        }
+        
+        // View gallery button click handler
+        viewGalleryBtn.addEventListener('click', () => {
+            window.location.href = 'gallery.html';
+        });
+        
+        // Collect metadata from form
+        function collectMetadata() {
+            const metadata = {};
+            
+            // Standard fields
+            const inputs = metadataForm.querySelectorAll('input, textarea');
+            inputs.forEach(input => {
+                if (input.name && input.value.trim()) {
+                    metadata[input.name] = input.value.trim();
+                }
+            });
+            
+            // Add creation time if not present
+            if (!metadata['Creation Time']) {
+                metadata['Creation Time'] = new Date().toISOString();
+            }
+            
+            return metadata;
+        }
+        
+        // Helper function to format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // Show status message
+        function showStatus(message, type = "info") {
+            const toastContainer = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            // Add appropriate icon based on type
+            const icon = document.createElement('i');
+            icon.className = type === "error" ? "fas fa-exclamation-circle" :
+                           type === "success" ? "fas fa-check-circle" :
+                           type === "warning" ? "fas fa-exclamation-triangle" :
+                           "fas fa-info-circle";
+            toast.appendChild(icon);
+            
+            // Add message content
+            const content = document.createElement('div');
+            content.className = 'toast-content';
+            content.textContent = message;
+            toast.appendChild(content);
+            
+            // Add close button
+            const closeBtn = document.createElement('div');
+            closeBtn.className = 'toast-close';
+            closeBtn.innerHTML = '&times;';
+            closeBtn.onclick = () => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            };
+            toast.appendChild(closeBtn);
+            
+            // Add to container
+            toastContainer.appendChild(toast);
+            
+            // Show toast
+            setTimeout(() => toast.classList.add('show'), 10);
+            
+            // Auto-remove after delay (except for errors)
+            if (type !== "error") {
+                setTimeout(() => {
+                    if (toast.parentElement) {
+                        toast.classList.remove('show');
+                        setTimeout(() => toast.remove(), 300);
+                    }
+                }, type === "success" ? 3000 : 5000);
+            }
+        }
+        
+        // Add hamburger menu functionality
+        const hamburgerIcon = document.querySelector('.hamburger-icon');
+        const hamburgerMenu = document.querySelector('.hamburger-menu');
+        
+        hamburgerIcon.addEventListener('click', () => {
+            hamburgerIcon.classList.toggle('show');
+            hamburgerMenu.classList.toggle('show');
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (hamburgerMenu.classList.contains('show') && 
+                !hamburgerMenu.contains(e.target) && 
+                !hamburgerIcon.contains(e.target)) {
+                hamburgerIcon.classList.remove('show');
+                hamburgerMenu.classList.remove('show');
+            }
+        });
+        
+        // Close menu when pressing Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && hamburgerMenu.classList.contains('show')) {
+                hamburgerIcon.classList.remove('show');
+                hamburgerMenu.classList.remove('show');
+            }
+        });
+
+        // URL Modal functionality
+        loadFromUrlBtn.addEventListener('click', () => {
+            urlModal.style.display = 'block';
+            urlInput.focus();
+        });
+
+        // Close modal when clicking the close button
+        document.querySelector('.modal-close').addEventListener('click', () => {
+            urlModal.style.display = 'none';
+            urlInput.value = '';
+        });
+
+        // Close modal when clicking cancel
+        document.querySelector('.modal-actions .cancel').addEventListener('click', () => {
+            urlModal.style.display = 'none';
+            urlInput.value = '';
+        });
+
+        // Close modal when clicking outside
+        urlModal.addEventListener('click', (e) => {
+            if (e.target === urlModal) {
+                urlModal.style.display = 'none';
+                urlInput.value = '';
+            }
+        });
+
+        // Handle URL image loading
+        document.querySelector('.modal-actions .load').addEventListener('click', async () => {
+            const url = urlInput.value.trim();
+            if (!url) {
+                showStatus('Please enter a valid URL', 'error');
+                return;
+            }
+
+            try {
+                showStatus('Loading image from URL...', 'info');
+                
+                // Fetch the image
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch image: ${response.statusText}`);
+                }
+
+                // Get the blob from the response
+                const blob = await response.blob();
+                
+                // Create a File object from the blob
+                const fileName = url.split('/').pop() || 'image.png';
+                const file = new File([blob], fileName, { type: blob.type });
+
+                // Close the modal
+                urlModal.style.display = 'none';
+                urlInput.value = '';
+
+                // Load the file
+                await loadPngFile(file);
+                
+                // Ask if user wants to convert to PNG
+                if (!file.type.includes('png')) {
+                    const shouldConvert = confirm('This image is not in PNG format. Would you like to convert it to PNG?');
+                    if (shouldConvert) {
+                        showStatus('Converting image to PNG format...', 'info');
+                        const convertedFile = await convertToPNG(file);
+                        currentFile = convertedFile;
+                        saveFileBtn.disabled = false;
+                        addToGalleryBtn.disabled = false;
+                        
+                        // Create object URL for preview
+                        const objectUrl = URL.createObjectURL(convertedFile);
+                        previewImage.src = objectUrl;
+                        
+                        showStatus('Image converted to PNG successfully', 'success');
+                    }
+                }
+            } catch (error) {
+                showStatus(`Error loading image from URL: ${error.message}`, 'error');
+                console.error(error);
+                urlModal.style.display = 'none';
+                urlInput.value = '';
+            }
+        });
+
+        // Handle Enter key in URL input
+        urlInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.querySelector('.modal-actions .load').click();
+            }
+        });
+
+        // Add communication with parent window
+        window.addEventListener('message', function(event) {
+            // Handle messages from parent window
+            if (event.data.type === 'loadImage') {
+                const { imageUrl, filename } = event.data;
+                loadImageFromUrl(imageUrl, filename);
+            }
+        });
+
+        // Function to load image from URL
+        async function loadImageFromUrl(imageUrl, filename) {
+            try {
+                showStatus('Loading image...', 'info');
+                
+                // Fetch the image
+                const response = await fetch(imageUrl);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch image: ${response.statusText}`);
+                }
+
+                // Get the blob from the response
+                const blob = await response.blob();
+                
+                // Create a File object from the blob
+                const file = new File([blob], filename || 'image.png', { type: blob.type });
+
+                // Load the file
+                await loadPngFile(file);
+                
+                showStatus('Image loaded successfully', 'success');
+            } catch (error) {
+                showStatus(`Error loading image: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        // Update the editImage function in gallery.html to communicate with the editor
+        function editImage(imageUrl, filename) {
+            const modal = document.getElementById('pngEditorModal');
+            const frame = document.getElementById('pngEditorFrame');
+            
+            // Show the modal
+            modal.style.display = 'block';
+            
+            // Wait for the iframe to load
+            frame.onload = () => {
+                // Send the image data to the editor
+                frame.contentWindow.postMessage({
+                    type: 'loadImage',
+                    imageUrl: imageUrl,
+                    filename: filename
+                }, '*');
+            };
+            
+            // Load the editor if not already loaded
+            if (frame.src !== 'png-editor.html') {
+                frame.src = 'png-editor.html';
+            }
+        }
+    </script>
+</body>
+</html> 
