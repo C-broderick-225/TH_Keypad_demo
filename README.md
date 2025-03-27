@@ -4,7 +4,7 @@ A collection of interactive keypad demos showcasing various input methods and se
 
 ## 🚀 Live Demo
 
-Visit the live demo at: [https://YOUR_GITHUB_USERNAME.github.io/TH_Keypad_demo/](https://YOUR_GITHUB_USERNAME.github.io/TH_Keypad_demo/)
+Visit the live demo at: [https://c-broderick-225.github.io/TH_Keypad_demo/](https://c-broderick-225.github.io/TH_Keypad_demo/)
 
 ## 📁 Project Structure
 
