@@ -18,13 +18,18 @@
             --error-color: #F44336;
             --cancel-color: #d32f2f;
             --confirm-color: #1976D2;
+            --toggle-bg-off: #ccc;
+            --toggle-bg-on: var(--success-color);
+            --toggle-knob: white;
             
             /* Sizing & spacing */
             --container-width: 380px;
             --container-padding: 30px;
-            --button-height: 80px;
             --border-radius: 10px;
-            --keypad-gap: 20px;
+
+            /* CSS Variables for Sliders */
+            --keypad-gap-var: 0px;
+            --button-size-var: 100px;
         }
 
         * {
@@ -67,22 +72,30 @@
         }
         
         /* Keypad layout */
+        .keypad-wrapper {
+            position: relative;
+            margin-top: 20px;
+            margin-bottom: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 160px;
+            width: 100%;
+        }
+
         .keypad {
             display: grid;
             grid-template-areas:
                 ". top ."
                 "left . right"
                 ". . .";
-            gap: 15px;
-            margin-bottom: 60px;
-            width: 300px;
-            margin-left: auto;
-            margin-right: auto;
+            gap: var(--keypad-gap-var);
+            place-items: center;
         }
         
         .button {
-            height: 100px;
-            width: 100px;
+            height: var(--button-size-var);
+            width: var(--button-size-var);
             background-color: var(--button-bg);
             border: none;
             border-radius: 20px;
@@ -105,21 +118,18 @@
             transform: rotate(-45deg);
         }
         
-        .button span:first-child {
-            top: 25%;
-            font-size: 24px;
-            transform: rotate(-45deg) translateX(-8px);
-        }
-        
         .button .values {
             position: absolute;
-            bottom: 15%;
-            font-size: 18px;
-            color: #888;
+            top: 50%;
+            left: 0;
             width: 100%;
             text-align: center;
-            transform: rotate(-45deg) translateX(15px);
-            left: 0;
+            font-size: 20px;
+            font-weight: 500;
+            color: #bbb;
+            letter-spacing: 2px;
+            transform: rotate(-45deg) translateY(calc(-50% + 8px)) translateX(6px);
+            pointer-events: none;
         }
         
         .button:hover {
@@ -193,6 +203,61 @@
         .led.red.active { background-color: var(--error-color); box-shadow: 0 0 10px var(--error-color); }
         .led.green.active { background-color: var(--success-color); box-shadow: 0 0 10px var(--success-color); }
         
+        /* Toggle Switch */
+        .toggle-switch-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+            margin-left: 10px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--toggle-bg-off);
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: var(--toggle-knob);
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--toggle-bg-on);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
         /* PIN display */
         .pin-display {
             display: flex;
@@ -201,6 +266,18 @@
             background-color: var(--display-bg);
             padding: 10px;
             border-radius: 5px;
+            transition: opacity 0.3s ease, max-height 0.3s ease;
+            overflow: hidden;
+            max-height: 60px;
+        }
+
+        .pin-display.hidden {
+            opacity: 0;
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            margin-bottom: 0;
+            border: none;
         }
         
         .pin-digit {
@@ -225,6 +302,7 @@
             text-align: center;
             margin-bottom: 20px;
             font-family: monospace;
+            font-size: 24px;
         }
         
         /* Status display */
@@ -273,6 +351,20 @@
         .action-button:active {
             transform: translateY(2px);
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        
+        /* Slider Styles */
+        .slider-container {
+            margin-top: 20px;
+            text-align: center;
+            color: var(--text-color);
+            font-size: 14px;
+        }
+
+        .slider-container input[type=range] {
+            width: 80%;
+            cursor: pointer;
+            margin-top: 5px;
         }
         
         /* Instructions */
@@ -328,15 +420,6 @@
                 padding: 15px;
             }
             
-            .keypad {
-                gap: 15px;
-            }
-            
-            .button {
-                height: 80px;
-                width: 80px;
-            }
-            
             h1 {
                 font-size: 1.5rem;
             }
@@ -365,36 +448,64 @@
         </div>
 
         <div class="current-value" id="currentValue">
-            Current Value: -
+            -
+        </div>
+
+        <!-- Toggle Switch -->
+        <div class="toggle-switch-container">
+            <label for="pinVisibilityToggle">Show PIN:</label>
+            <label class="toggle-switch">
+                <input type="checkbox" id="pinVisibilityToggle">
+                <span class="slider"></span>
+            </label>
         </div>
         
-        <div class="pin-display">
+        <div class="pin-display hidden" id="pinDisplay">
             <div class="pin-digit" id="digit1">-</div>
             <div class="pin-digit" id="digit2">-</div>
             <div class="pin-digit" id="digit3">-</div>
             <div class="pin-digit" id="digit4">-</div>
         </div>
         
-        <div class="keypad no-select">
-            <button class="button" id="btn1" data-values="1,2,3,4">
-                <span>1</span>
-                <span class="values">[1,2,3,4]</span>
-            </button>
-            <button class="button" id="btn2" data-values="5,6,7,8">
-                <span>2</span>
-                <span class="values">[5,6,7,8]</span>
-            </button>
-            <button class="button" id="btn3" data-values="9,0,*,#">
-                <span>3</span>
-                <span class="values">[9,0,*,#]</span>
-            </button>
+        <div class="keypad-wrapper">
+            <div class="keypad no-select">
+                <button class="button" id="btn1" data-values="1,2,3,4">
+                    <span class="values">1 2 3 4</span>
+                </button>
+                <button class="button" id="btn2" data-values="5,6,7,8">
+                    <span class="values">5 6 7 8</span>
+                </button>
+                <button class="button" id="btn3" data-values="9,0,*,#">
+                    <span class="values">9 0 * #</span>
+                </button>
+            </div>
         </div>
-        <div>
-            <h2> (Single Press = Cancel, Double Press = Confirm)</h2>
-        </div>
+        
+        <h2 style="font-size: 0.9rem; margin-top: -15px; margin-bottom: 15px;"> (Single Press = Cancel, Double Press = Confirm)</h2>
         
         <div class="action-buttons">
             <button class="action-button" id="actionBtn">CANCEL / CONFIRM</button>
+        </div>
+
+        <!-- Cycle Timeout Slider -->
+        <div class="slider-container">
+            <label for="cycleTimeoutSlider">Digit Confirm Timeout:</label>
+            <input type="range" id="cycleTimeoutSlider" min="500" max="3000" step="100">
+            <span id="cycleTimeoutValue"></span> ms
+        </div>
+
+        <!-- Button Spacing Slider -->
+        <div class="slider-container">
+            <label for="buttonSpacingSlider">Button Spacing:</label>
+            <input type="range" id="buttonSpacingSlider" min="0" max="30" step="1">
+            <span id="buttonSpacingValue"></span> px
+        </div>
+
+        <!-- Button Size Slider -->
+        <div class="slider-container">
+            <label for="buttonSizeSlider">Button Size:</label>
+            <input type="range" id="buttonSizeSlider" min="50" max="120" step="1">
+            <span id="buttonSizeValue"></span> px
         </div>
         
         <div class="status" id="status"></div>
@@ -410,10 +521,10 @@
         </ul>
         <p><strong>Example:</strong> To enter "3108", press:</p>
         <ul>
-            <li>Button 1 three times (for 3)</li>
-            <li>Button 1 once (for 1)</li>
-            <li>Button 3 two times (for 0)</li>
-            <li>Button 2 four times (for 8)</li>
+            <li>Button with "1 2 3 4" three times (for 3)</li>
+            <li>Button with "1 2 3 4" once (for 1)</li>
+            <li>Button with "9 0 * #" two times (for 0)</li>
+            <li>Button with "5 6 7 8" four times (for 8)</li>
         </ul>
         <p>Each digit is logged automatically when you select it. After entering all 4 digits, press the CONFIRM button with a double-press.</p>
         <p><strong>Single press</strong> of the button will cancel the current input.</p>
@@ -429,7 +540,7 @@
             SECURITY_LOCKOUT: 60000,
             SUCCESS_UNLOCK_TIME: 5000,
             MAX_FAILED_ATTEMPTS: 6,
-            CYCLE_TIMEOUT: 1500,
+            CYCLE_TIMEOUT: 1500, // Default Cycle Timeout
             DOUBLE_PRESS_WINDOW: 300 // Window for double press in ms
         };
         
@@ -480,7 +591,16 @@
             statusDisplay: document.getElementById('status'),
             digits: Array.from(document.querySelectorAll('.pin-digit')),
             actionButton: document.getElementById('actionBtn'),
-            currentValue: document.getElementById('currentValue')
+            currentValue: document.getElementById('currentValue'),
+            pinVisibilityToggle: document.getElementById('pinVisibilityToggle'),
+            pinDisplay: document.getElementById('pinDisplay'),
+            cycleTimeoutSlider: document.getElementById('cycleTimeoutSlider'),
+            cycleTimeoutValue: document.getElementById('cycleTimeoutValue'),
+            buttonSpacingSlider: document.getElementById('buttonSpacingSlider'),
+            buttonSpacingValue: document.getElementById('buttonSpacingValue'),
+            buttonSizeSlider: document.getElementById('buttonSizeSlider'),
+            buttonSizeValue: document.getElementById('buttonSizeValue'),
+            keypad: document.querySelector('.keypad')
         };
         
         // Initialize the system
@@ -489,6 +609,10 @@
             setSystemState(STATE.IDLE);
             startIdleLedBlink();
             setupButtonListeners();
+            setupToggleListener();
+            setupTimeoutSliderListener();
+            setupSpacingSliderListener();
+            setupSizeSliderListener();
             
             // Check if on mobile device
             if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
@@ -507,6 +631,74 @@
             
             // Action button (Cancel/Confirm)
             elements.actionButton.addEventListener('click', handleActionButtonClick);
+        }
+
+        // Set up toggle switch listener
+        function setupToggleListener() {
+            elements.pinVisibilityToggle.addEventListener('change', () => {
+                if (elements.pinVisibilityToggle.checked) {
+                    elements.pinDisplay.classList.remove('hidden');
+                    log("PIN display shown");
+                } else {
+                    elements.pinDisplay.classList.add('hidden');
+                    log("PIN display hidden");
+                }
+            });
+            // Ensure initial state matches checkbox (default is unchecked/hidden)
+            if (!elements.pinVisibilityToggle.checked) {
+                 elements.pinDisplay.classList.add('hidden');
+            }
+        }
+        
+        // Set up timeout slider listener
+        function setupTimeoutSliderListener() {
+            const slider = elements.cycleTimeoutSlider;
+            const valueDisplay = elements.cycleTimeoutValue;
+
+            // Set initial slider value and display
+            slider.value = CONFIG.CYCLE_TIMEOUT;
+            valueDisplay.textContent = CONFIG.CYCLE_TIMEOUT;
+
+            slider.addEventListener('input', () => {
+                const newValue = parseInt(slider.value, 10);
+                CONFIG.CYCLE_TIMEOUT = newValue;
+                valueDisplay.textContent = newValue;
+                log(`Cycle Timeout set to ${newValue}ms`);
+            });
+        }
+        
+        // Set up button spacing slider listener
+        function setupSpacingSliderListener() {
+            const slider = elements.buttonSpacingSlider;
+            const valueDisplay = elements.buttonSpacingValue;
+            const root = document.documentElement;
+            const initialValue = parseInt(root.style.getPropertyValue('--keypad-gap-var') || getComputedStyle(root).getPropertyValue('--keypad-gap-var'), 10);
+
+            slider.value = initialValue;
+            valueDisplay.textContent = initialValue;
+
+            slider.addEventListener('input', () => {
+                const newValue = slider.value;
+                root.style.setProperty('--keypad-gap-var', `${newValue}px`);
+                valueDisplay.textContent = newValue;
+            });
+        }
+
+        // Set up button size slider listener
+        function setupSizeSliderListener() {
+            const slider = elements.buttonSizeSlider;
+            const valueDisplay = elements.buttonSizeValue;
+            const root = document.documentElement;
+            const initialValue = parseInt(root.style.getPropertyValue('--button-size-var') || getComputedStyle(root).getPropertyValue('--button-size-var'), 10);
+
+            slider.value = initialValue;
+            valueDisplay.textContent = initialValue;
+
+            slider.addEventListener('input', () => {
+                const newValue = slider.value;
+                root.style.setProperty('--button-size-var', `${newValue}px`);
+                valueDisplay.textContent = newValue;
+            });
         }
         
         // Handle button events
@@ -606,9 +798,9 @@
                 INPUT.pressCount = 0;
             }
 
-            // Update current value
+            // Update current value display (remove prefix)
             INPUT.currentValue = BUTTON_VALUES[buttonNumber][INPUT.pressCount];
-            elements.currentValue.textContent = `Current Value: ${INPUT.currentValue}`;
+            elements.currentValue.textContent = `${INPUT.currentValue}`;
             
             // Clear existing timeout
             if (INPUT.cycleTimeout) clearTimeout(INPUT.cycleTimeout);
@@ -642,7 +834,7 @@
             INPUT.currentButton = null;
             INPUT.pressCount = 0;
             INPUT.currentValue = null;
-            elements.currentValue.textContent = 'Current Value: -';
+            elements.currentValue.textContent = '-';
             if (INPUT.cycleTimeout) clearTimeout(INPUT.cycleTimeout);
         }
         
