@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TH Keypad Demo Showcase</title>
     <style>
         :root {
@@ -30,6 +30,8 @@
             align-items: center;
             min-height: 100vh;
             touch-action: manipulation;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: none;
         }
         
         .header {
@@ -68,6 +70,13 @@
             color: var(--text-color);
             cursor: pointer;
             margin-bottom: 15px;
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23ffffff%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px top 50%;
+            background-size: 12px auto;
+            padding-right: 30px;
         }
         
         .demo-select:focus {
@@ -97,6 +106,7 @@
             display: flex;
             flex-direction: column;
             position: relative;
+            overscroll-behavior: contain;
         }
         
         .demo-frame {
@@ -104,10 +114,11 @@
             height: 100%;
             border: none;
             transition: opacity 0.3s ease;
+            overflow: hidden;
         }
         
         .demo-description {
-            background-color: rgba(51, 51, 51, 0.9);
+            background-color: rgba(51, 51, 51, 0.95);
             color: var(--text-color);
             padding: 15px 20px;
             position: absolute;
@@ -118,29 +129,84 @@
             overflow-y: auto;
             transform: translateY(100%);
             transition: transform 0.3s ease;
+            -webkit-overflow-scrolling: touch;
+            z-index: 20;
         }
         
         .show-description {
             background-color: var(--accent-color);
             color: white;
             border: none;
-            padding: 8px 16px;
+            padding: 10px 16px;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 16px;
             position: absolute;
             bottom: 15px;
             right: 15px;
-            z-index: 10;
+            z-index: 25;
             transition: background-color 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
         
         .show-description:hover {
             background-color: var(--accent-hover);
         }
+
+        .show-description:active {
+            transform: translateY(2px);
+        }
         
         .description-active .demo-description {
             transform: translateY(0);
+        }
+        
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(51, 51, 51, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 15;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .loading-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--accent-color);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Close button for description panel on mobile */
+        .close-description {
+            display: none;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
         }
         
         @media (max-width: 768px) {
@@ -150,6 +216,35 @@
             
             .demo-container {
                 height: 600px;
+            }
+            
+            /* Make the description panel take up more space on mobile */
+            .demo-description {
+                max-height: 50%;
+            }
+            
+            /* Show close button for the description panel on mobile */
+            .close-description {
+                display: block;
+            }
+            
+            /* Make the Show Info button larger and easier to tap on mobile */
+            .show-description {
+                padding: 12px 20px;
+                bottom: 20px;
+                right: 20px;
+            }
+            
+            /* Prevent scroll issues on mobile */
+            .description-active {
+                touch-action: none;
+            }
+            
+            body.description-open {
+                overflow: hidden;
+                position: fixed;
+                width: 100%;
+                height: 100%;
             }
         }
     </style>
@@ -210,9 +305,13 @@
     </div>
     
     <div class="demo-container" id="demoContainer">
-        <iframe id="demoFrame" class="demo-frame" src="about:blank"></iframe>
+        <iframe id="demoFrame" class="demo-frame" src="about:blank" sandbox="allow-same-origin allow-scripts allow-forms" scrolling="no"></iframe>
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="spinner"></div>
+        </div>
         <button id="showDescription" class="show-description">Show Info</button>
         <div class="demo-description" id="demoDescription">
+            <button id="closeDescription" class="close-description">✕</button>
             <h3 id="demoTitle">Select a demo from the dropdown above</h3>
             <p id="demoText">The description of the selected demo will appear here.</p>
         </div>
@@ -225,8 +324,18 @@
             const demoContainer = document.getElementById('demoContainer');
             const demoDescription = document.getElementById('demoDescription');
             const showDescriptionBtn = document.getElementById('showDescription');
+            const closeDescriptionBtn = document.getElementById('closeDescription');
             const demoTitle = document.getElementById('demoTitle');
             const demoText = document.getElementById('demoText');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const body = document.body;
+            
+            // Detect mobile device
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            if (isMobile) {
+                demoContainer.classList.add('mobile');
+            }
             
             // Load the selected demo
             demoSelector.addEventListener('change', function() {
@@ -235,12 +344,30 @@
                 const demoName = selectedOption.textContent;
                 const demoDesc = selectedOption.getAttribute('data-description') || 'No description available';
                 
+                // Show loading indicator
+                loadingOverlay.classList.add('active');
+                
                 // Set the iframe source
                 demoFrame.style.opacity = 0;
                 setTimeout(() => {
                     demoFrame.src = demoUrl;
                     demoFrame.onload = function() {
+                        // Hide loading indicator and show iframe
+                        loadingOverlay.classList.remove('active');
                         demoFrame.style.opacity = 1;
+                        
+                        // Try to inject touch event handling into the iframe content
+                        try {
+                            const iframeDoc = demoFrame.contentDocument || demoFrame.contentWindow.document;
+                            const style = iframeDoc.createElement('style');
+                            style.textContent = `
+                                body { touch-action: manipulation; -webkit-overflow-scrolling: touch; }
+                                button, input, select { touch-action: manipulation; }
+                            `;
+                            iframeDoc.head.appendChild(style);
+                        } catch (e) {
+                            console.log('Cannot modify iframe content due to same-origin policy');
+                        }
                     };
                 }, 300);
                 
@@ -253,6 +380,22 @@
             showDescriptionBtn.addEventListener('click', function() {
                 demoContainer.classList.toggle('description-active');
                 this.textContent = demoContainer.classList.contains('description-active') ? 'Hide Info' : 'Show Info';
+                
+                // On mobile, prevent body scrolling when description is open
+                if (isMobile) {
+                    if (demoContainer.classList.contains('description-active')) {
+                        body.classList.add('description-open');
+                    } else {
+                        body.classList.remove('description-open');
+                    }
+                }
+            });
+            
+            // Close description with the X button (mobile)
+            closeDescriptionBtn.addEventListener('click', function() {
+                demoContainer.classList.remove('description-active');
+                showDescriptionBtn.textContent = 'Show Info';
+                body.classList.remove('description-open');
             });
             
             // Handle iframe load events
@@ -265,9 +408,10 @@
             
             demoFrame.addEventListener('error', function() {
                 console.error('Failed to load demo:', this.src);
+                loadingOverlay.classList.remove('active');
                 demoFrame.srcdoc = `
                     <html>
-                    <body style="display: flex; justify-content: center; align-items: center; height: 100%; margin: 0; background-color: #333; color: white; font-family: Arial, sans-serif;">
+                    <body style="display: flex; justify-content: center; align-items: center; height: 100%; margin: 0; background-color: #333; color: white; font-family: Arial, sans-serif; touch-action: manipulation;">
                         <div style="text-align: center; padding: 20px;">
                             <h2>Error Loading Demo</h2>
                             <p>The selected demo could not be loaded. Please try another one.</p>
@@ -276,6 +420,25 @@
                     </html>
                 `;
             });
+            
+            // Prevent touch conflicts on mobile
+            if (isMobile) {
+                // Prevent pinch zoom on the container
+                demoContainer.addEventListener('touchmove', function(e) {
+                    if (e.touches.length > 1) {
+                        e.preventDefault();
+                    }
+                }, { passive: false });
+                
+                // Handle touch events inside description panel
+                demoDescription.addEventListener('touchstart', function(e) {
+                    e.stopPropagation();
+                });
+                
+                demoDescription.addEventListener('touchmove', function(e) {
+                    e.stopPropagation();
+                });
+            }
         });
     </script>
 </body>
