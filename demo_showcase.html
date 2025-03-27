@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TH Keypad Demo Showcase</title>
+    <style>
+        :root {
+            /* Color variables */
+            --bg-color: #f0f0f0;
+            --container-bg: #333;
+            --button-bg: #444;
+            --button-hover: #555;
+            --text-color: #e0e0e0;
+            --accent-color: #4CAF50;
+            --accent-hover: #45a049;
+            
+            /* Spacing and sizing */
+            --container-padding: 30px;
+            --border-radius: 10px;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            touch-action: manipulation;
+        }
+        
+        .header {
+            background-color: var(--container-bg);
+            border-radius: var(--border-radius);
+            padding: 20px 30px;
+            width: 90%;
+            max-width: 1200px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            color: var(--text-color);
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .title {
+            margin: 0 0 20px 0;
+            text-align: center;
+        }
+        
+        .controls {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .demo-select {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border-radius: var(--border-radius);
+            border: none;
+            background-color: var(--button-bg);
+            color: var(--text-color);
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+        
+        .demo-select:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--accent-color);
+        }
+        
+        .demo-select option {
+            background-color: var(--container-bg);
+            color: var(--text-color);
+            padding: 10px;
+        }
+        
+        .demo-select optgroup {
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+        
+        .demo-container {
+            width: 90%;
+            max-width: 1200px;
+            height: 700px;
+            background-color: var(--container-bg);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .demo-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .demo-description {
+            background-color: rgba(51, 51, 51, 0.9);
+            color: var(--text-color);
+            padding: 15px 20px;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            max-height: 30%;
+            overflow-y: auto;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .show-description {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            z-index: 10;
+            transition: background-color 0.3s ease;
+        }
+        
+        .show-description:hover {
+            background-color: var(--accent-hover);
+        }
+        
+        .description-active .demo-description {
+            transform: translateY(0);
+        }
+        
+        @media (max-width: 768px) {
+            .header, .demo-container {
+                width: 95%;
+            }
+            
+            .demo-container {
+                height: 600px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 class="title">TH Keypad Demo Showcase</h1>
+        <div class="controls">
+            <select id="demoSelector" class="demo-select">
+                <option value="" selected disabled>Select a Demo</option>
+                
+                <optgroup label="Four Key Button Sum Demos">
+                    <option value="src/demos/keypad/key_pad_security_nibble_v1.1.html" data-description="Basic four key security system using nibble sum approach (version 1.1)">Nibble Sum Demo v1.1</option>
+                    <option value="src/demos/keypad/key_pad_security_nibble_v2.0.html" data-description="Improved four key security system using nibble sum approach (version 2.0)">Nibble Sum Demo v2.0</option>
+                    <option value="src/demos/keypad/nibble_3.4.html" data-description="Advanced four key security system using nibble sum approach with enhanced features (version 3.4)">Nibble Sum Demo v3.4</option>
+                </optgroup>
+
+                <optgroup label="Three Button Nibble Demos">
+                    <option value="src/demos/keypad/3btn_nibble_3.5.html" data-description="Three button keypad using nibble sum technique (version 3.5)">Three Button Nibble Demo v3.5</option>
+                    <option value="src/demos/keypad/3btn_SML_v1.3.html" data-description="Three button keypad using SML (Small-Medium-Large) interactions (version 1.3)">Three Button SML Demo v1.3</option>
+                </optgroup>
+                
+                <optgroup label="Four Button Letters Demos">
+                    <option value="src/demos/keypad/key_pad_security_letters_v1.html" data-description="Four key security system using letter combinations (version 1.0)">Letters Demo v1.0</option>
+                    <option value="src/demos/keypad/key_pad_security_letters_v2.html" data-description="Improved four key security system using letter combinations (version 2.1)">Letters Demo v2.1</option>
+                    <option value="src/demos/keypad/letters_3.0.html" data-description="Advanced four key security system using letter combinations (version 3.0)">Letters Demo v3.0</option>
+                    <option value="src/demos/keypad/letters_3.2.html" data-description="Further enhanced four key security system using letter combinations (version 3.2)">Letters Demo v3.2</option>
+                </optgroup>
+
+                <optgroup label="Three Button AB-BA-ABC Demos">
+                    <option value="src/demos/keypad/AB-BA-ABC_1.3.html" data-description="Three button keypad using AB-BA-ABC sequences (version 1.3)">AB-BA-ABC Demo v1.3</option>
+                    <option value="src/demos/keypad/AB-BA-ABC_2.1.html" data-description="Improved three button keypad using AB-BA-ABC sequences (version 2.1)">AB-BA-ABC Demo v2.1</option>
+                </optgroup>
+                
+                <optgroup label="Four Button PIN Demos">
+                    <option value="src/demos/keypad/key_pad_security_pin_v1.html" data-description="Four key security system using PIN codes (version 1.1)">Four Digit PIN Demo v1.1</option>
+                    <option value="src/demos/keypad/pin_2.1.html" data-description="Improved four key security system using PIN codes (version 2.1)">Four Digit PIN Demo v2.1</option>
+                </optgroup>
+
+                <optgroup label="N4 (four key) Demos">
+                    <option value="src/demos/keypad/n4-3_1.3.html" data-description="N4-3 PIN system with four keys (version 1.3)">N4-3 PIN Demo v1.3</option>
+                </optgroup>
+
+                <optgroup label="N3 (three key) Demos">
+                    <option value="src/demos/keypad/n3-4_1.0.html" data-description="N3-4 PIN system with three keys (version 1.0)">N3-4 PIN Demo v1.0</option>
+                    <option value="src/demos/keypad/n3-3_1.0.html" data-description="N3-3 PIN system with three keys (version 1.0)">N3-3 PIN Demo v1.0</option>
+                </optgroup>
+
+                <optgroup label="Up-Down Selection Demos">
+                    <option value="src/demos/keypad/up-down_1.0.html" data-description="Up-Down selection system for navigation and option selection (version 1.0)">Up-Down Selection System v1.0</option>
+                </optgroup>
+
+                <optgroup label="Editor Demos">
+                    <option value="src/demos/editor/png-editor.html" data-description="PNG editor utility for creating and editing PNG files">PNG Editor</option>
+                </optgroup>
+            </select>
+        </div>
+    </div>
+    
+    <div class="demo-container" id="demoContainer">
+        <iframe id="demoFrame" class="demo-frame" src="about:blank"></iframe>
+        <button id="showDescription" class="show-description">Show Info</button>
+        <div class="demo-description" id="demoDescription">
+            <h3 id="demoTitle">Select a demo from the dropdown above</h3>
+            <p id="demoText">The description of the selected demo will appear here.</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const demoSelector = document.getElementById('demoSelector');
+            const demoFrame = document.getElementById('demoFrame');
+            const demoContainer = document.getElementById('demoContainer');
+            const demoDescription = document.getElementById('demoDescription');
+            const showDescriptionBtn = document.getElementById('showDescription');
+            const demoTitle = document.getElementById('demoTitle');
+            const demoText = document.getElementById('demoText');
+            
+            // Load the selected demo
+            demoSelector.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                const demoUrl = selectedOption.value;
+                const demoName = selectedOption.textContent;
+                const demoDesc = selectedOption.getAttribute('data-description') || 'No description available';
+                
+                // Set the iframe source
+                demoFrame.style.opacity = 0;
+                setTimeout(() => {
+                    demoFrame.src = demoUrl;
+                    demoFrame.onload = function() {
+                        demoFrame.style.opacity = 1;
+                    };
+                }, 300);
+                
+                // Update description
+                demoTitle.textContent = demoName;
+                demoText.textContent = demoDesc;
+            });
+            
+            // Toggle description visibility
+            showDescriptionBtn.addEventListener('click', function() {
+                demoContainer.classList.toggle('description-active');
+                this.textContent = demoContainer.classList.contains('description-active') ? 'Hide Info' : 'Show Info';
+            });
+            
+            // Handle iframe load events
+            demoFrame.addEventListener('load', function() {
+                if (this.src !== 'about:blank') {
+                    // Successfully loaded a demo
+                    console.log('Demo loaded:', this.src);
+                }
+            });
+            
+            demoFrame.addEventListener('error', function() {
+                console.error('Failed to load demo:', this.src);
+                demoFrame.srcdoc = `
+                    <html>
+                    <body style="display: flex; justify-content: center; align-items: center; height: 100%; margin: 0; background-color: #333; color: white; font-family: Arial, sans-serif;">
+                        <div style="text-align: center; padding: 20px;">
+                            <h2>Error Loading Demo</h2>
+                            <p>The selected demo could not be loaded. Please try another one.</p>
+                        </div>
+                    </body>
+                    </html>
+                `;
+            });
+        });
+    </script>
+</body>
+</html> 
