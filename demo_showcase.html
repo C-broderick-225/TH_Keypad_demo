@@ -1,28 +1,47 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="color-scheme" content="dark">
     <title>TH Keypad Demo Showcase</title>
     <style>
         :root {
-            /* Color variables */
-            --bg-color: #f0f0f0;
-            --container-bg: #333;
-            --button-bg: #444;
-            --button-hover: #555;
+            color-scheme: dark;
+            
+            /* Dark mode colors */
+            --bg-color: #121212;
+            --container-bg: #1e1e1e;
+            --button-bg: #2a2a2a;
+            --button-hover: #3a3a3a;
             --text-color: #e0e0e0;
             --accent-color: #4CAF50;
             --accent-hover: #45a049;
+            --border-color: #333;
             
             /* Spacing and sizing */
             --container-padding: 30px;
             --border-radius: 10px;
         }
         
+        /* Force dark mode regardless of system preference */
+        @media (prefers-color-scheme: light) {
+            :root {
+                color-scheme: dark;
+            }
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+        
         body {
             font-family: Arial, sans-serif;
-            background-color: var(--bg-color);
             margin: 0;
             padding: 20px;
             display: flex;
@@ -46,6 +65,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            border: 1px solid var(--border-color);
         }
         
         .title {
@@ -65,7 +85,7 @@
             padding: 12px;
             font-size: 16px;
             border-radius: var(--border-radius);
-            border: none;
+            border: 1px solid var(--border-color);
             background-color: var(--button-bg);
             color: var(--text-color);
             cursor: pointer;
@@ -107,6 +127,7 @@
             flex-direction: column;
             position: relative;
             overscroll-behavior: contain;
+            border: 1px solid var(--border-color);
         }
         
         .demo-frame {
@@ -115,10 +136,12 @@
             border: none;
             transition: opacity 0.3s ease;
             overflow: hidden;
+            background-color: var(--container-bg);
+            color-scheme: dark;
         }
         
         .demo-description {
-            background-color: rgba(51, 51, 51, 0.95);
+            background-color: rgba(20, 20, 20, 0.95);
             color: var(--text-color);
             padding: 15px 20px;
             position: absolute;
@@ -131,6 +154,7 @@
             transition: transform 0.3s ease;
             -webkit-overflow-scrolling: touch;
             z-index: 20;
+            border-top: 1px solid var(--border-color);
         }
         
         .show-description {
@@ -167,7 +191,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(51, 51, 51, 0.7);
+            background-color: rgba(0, 0, 0, 0.7);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -207,6 +231,31 @@
             font-size: 20px;
             cursor: pointer;
             padding: 5px;
+        }
+        
+        /* Dark mode toggle button */
+        .dark-mode-toggle {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--button-bg);
+            transition: background-color 0.3s ease;
+        }
+        
+        .dark-mode-toggle:hover {
+            background-color: var(--button-hover);
         }
         
         @media (max-width: 768px) {
@@ -337,6 +386,49 @@
                 demoContainer.classList.add('mobile');
             }
             
+            // Dark mode CSS to inject into iframes
+            const darkModeCSS = `
+                :root {
+                    color-scheme: dark;
+                }
+                
+                @media (prefers-color-scheme: light) {
+                    :root {
+                        color-scheme: dark;
+                    }
+                }
+                
+                html, body {
+                    background-color: #1e1e1e !important;
+                    color: #e0e0e0 !important;
+                }
+                
+                .container, .keypad, .status, .display, .nibble-display, .instructions {
+                    background-color: #2a2a2a !important;
+                    color: #e0e0e0 !important;
+                    border-color: #333 !important;
+                }
+                
+                button, input, select {
+                    background-color: #333 !important;
+                    color: #e0e0e0 !important;
+                    border-color: #444 !important;
+                }
+                
+                button:hover, input:hover, select:hover {
+                    background-color: #444 !important;
+                }
+                
+                .led.red.inactive { background-color: #553333 !important; }
+                .led.green.inactive { background-color: #335533 !important; }
+                
+                a, a:visited { color: #4CAF50 !important; }
+                
+                /* Invert colors for error/success states */
+                .error, .error-text { color: #ff6b6b !important; }
+                .success, .success-text { color: #4CAF50 !important; }
+            `;
+            
             // Load the selected demo
             demoSelector.addEventListener('change', function() {
                 const selectedOption = this.options[this.selectedIndex];
@@ -356,17 +448,34 @@
                         loadingOverlay.classList.remove('active');
                         demoFrame.style.opacity = 1;
                         
-                        // Try to inject touch event handling into the iframe content
+                        // Try to inject dark mode styles into the iframe content
                         try {
                             const iframeDoc = demoFrame.contentDocument || demoFrame.contentWindow.document;
+                            
+                            // Add meta tag for color scheme
+                            const meta = document.createElement('meta');
+                            meta.name = 'color-scheme';
+                            meta.content = 'dark';
+                            iframeDoc.head.appendChild(meta);
+                            
+                            // Add dark mode styles
                             const style = iframeDoc.createElement('style');
-                            style.textContent = `
+                            style.textContent = darkModeCSS;
+                            iframeDoc.head.appendChild(style);
+                            
+                            // Add data-theme attribute to html tag
+                            iframeDoc.documentElement.setAttribute('data-theme', 'dark');
+                            
+                            // Add touch handling styles
+                            const touchStyle = iframeDoc.createElement('style');
+                            touchStyle.textContent = `
                                 body { touch-action: manipulation; -webkit-overflow-scrolling: touch; }
                                 button, input, select { touch-action: manipulation; }
                             `;
-                            iframeDoc.head.appendChild(style);
+                            iframeDoc.head.appendChild(touchStyle);
+                            
                         } catch (e) {
-                            console.log('Cannot modify iframe content due to same-origin policy');
+                            console.log('Cannot modify iframe content due to same-origin policy:', e);
                         }
                     };
                 }, 300);
@@ -410,8 +519,17 @@
                 console.error('Failed to load demo:', this.src);
                 loadingOverlay.classList.remove('active');
                 demoFrame.srcdoc = `
-                    <html>
-                    <body style="display: flex; justify-content: center; align-items: center; height: 100%; margin: 0; background-color: #333; color: white; font-family: Arial, sans-serif; touch-action: manipulation;">
+                    <html data-theme="dark">
+                    <head>
+                        <meta name="color-scheme" content="dark">
+                        <style>
+                            html, body {
+                                background-color: #1e1e1e;
+                                color: #e0e0e0;
+                            }
+                        </style>
+                    </head>
+                    <body style="display: flex; justify-content: center; align-items: center; height: 100%; margin: 0; background-color: #1e1e1e; color: white; font-family: Arial, sans-serif; touch-action: manipulation;">
                         <div style="text-align: center; padding: 20px;">
                             <h2>Error Loading Demo</h2>
                             <p>The selected demo could not be loaded. Please try another one.</p>
