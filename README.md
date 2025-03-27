@@ -1,15 +1,15 @@
-# TH Keypad Demo Collection
+# HT Keypad Demo Collection
 
 A collection of interactive keypad demos showcasing various input methods and security implementations.
 
 ## 🚀 Live Demo
 
-Visit the live demo at: [https://c-broderick-225.github.io/TH_Keypad_demo/](https://c-broderick-225.github.io/TH_Keypad_demo/)
+Visit the live demo at: [https://c-broderick-225.github.io/HT_Keypad_demo/](https://c-broderick-225.github.io/HT_Keypad_demo/)
 
 ## 📁 Project Structure
 
 ```
-TH_Keypad_demo/
+HT_Keypad_demo/
 ├── index.html              # Main entry point
 ├── src/
 │   ├── demos/
@@ -61,7 +61,7 @@ TH_Keypad_demo/
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/YOUR_GITHUB_USERNAME/TH_Keypad_demo.git
+   git clone https://github.com/YOUR_GITHUB_USERNAME/HT_Keypad_demo.git
    ```
 
 2. Open `index.html` in your web browser to view the demos locally.
@@ -73,7 +73,7 @@ TH_Keypad_demo/
 3. Under "Source", select the branch you want to deploy (usually `main` or `master`)
 4. Click "Save"
 
-Your site will be available at: `https://YOUR_GITHUB_USERNAME.github.io/TH_Keypad_demo/`
+Your site will be available at: `https://YOUR_GITHUB_USERNAME.github.io/HT_Keypad_demo/`
 
 ## 📝 Notes
 
