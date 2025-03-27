@@ -146,51 +146,6 @@
             color-scheme: dark;
         }
         
-        .demo-description {
-            background-color: rgba(20, 20, 20, 0.95);
-            color: var(--text-color);
-            padding: 15px 20px;
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            max-height: 30%;
-            overflow-y: auto;
-            transform: translateY(100%);
-            transition: transform 0.3s ease;
-            -webkit-overflow-scrolling: touch;
-            z-index: 20;
-            border-top: 1px solid var(--border-color);
-        }
-        
-        .show-description {
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            position: absolute;
-            bottom: 15px;
-            right: 15px;
-            z-index: 25;
-            transition: background-color 0.3s ease;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-        
-        .show-description:hover {
-            background-color: var(--accent-hover);
-        }
-
-        .show-description:active {
-            transform: translateY(2px);
-        }
-        
-        .description-active .demo-description {
-            transform: translateY(0);
-        }
-        
         .loading-overlay {
             position: absolute;
             top: 0;
@@ -223,20 +178,6 @@
         
         @keyframes spin {
             to { transform: rotate(360deg); }
-        }
-        
-        /* Close button for description panel on mobile */
-        .close-description {
-            display: none;
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: none;
-            border: none;
-            color: white;
-            font-size: 20px;
-            cursor: pointer;
-            padding: 5px;
         }
         
         /* Dark mode toggle button */
@@ -275,35 +216,6 @@
             
             .controls {
                 padding: 0 10px;
-            }
-            
-            /* Make the description panel take up more space on mobile */
-            .demo-description {
-                max-height: 50%;
-            }
-            
-            /* Show close button for the description panel on mobile */
-            .close-description {
-                display: block;
-            }
-            
-            /* Make the Show Info button larger and easier to tap on mobile */
-            .show-description {
-                padding: 12px 20px;
-                bottom: 20px;
-                right: 20px;
-            }
-            
-            /* Prevent scroll issues on mobile */
-            .description-active {
-                touch-action: none;
-            }
-            
-            body.description-open {
-                overflow: hidden;
-                position: fixed;
-                width: 100%;
-                height: 100%;
             }
         }
     </style>
@@ -368,12 +280,6 @@
         <div class="loading-overlay" id="loadingOverlay">
             <div class="spinner"></div>
         </div>
-        <button id="showDescription" class="show-description">Show Info</button>
-        <div class="demo-description" id="demoDescription">
-            <button id="closeDescription" class="close-description">✕</button>
-            <h3 id="demoTitle">Select a demo from the dropdown above</h3>
-            <p id="demoText">The description of the selected demo will appear here.</p>
-        </div>
     </div>
 
     <script>
@@ -381,10 +287,6 @@
             const demoSelector = document.getElementById('demoSelector');
             const demoFrame = document.getElementById('demoFrame');
             const demoContainer = document.getElementById('demoContainer');
-            const demoDescription = document.getElementById('demoDescription');
-            const showDescriptionBtn = document.getElementById('showDescription');
-            const closeDescriptionBtn = document.getElementById('closeDescription');
-            const demoTitle = document.getElementById('demoTitle');
             const demoText = document.getElementById('demoText');
             const loadingOverlay = document.getElementById('loadingOverlay');
             const body = document.body;
@@ -489,32 +391,6 @@
                         }
                     };
                 }, 300);
-                
-                // Update description
-                demoTitle.textContent = demoName;
-                demoText.textContent = demoDesc;
-            });
-            
-            // Toggle description visibility
-            showDescriptionBtn.addEventListener('click', function() {
-                demoContainer.classList.toggle('description-active');
-                this.textContent = demoContainer.classList.contains('description-active') ? 'Hide Info' : 'Show Info';
-                
-                // On mobile, prevent body scrolling when description is open
-                if (isMobile) {
-                    if (demoContainer.classList.contains('description-active')) {
-                        body.classList.add('description-open');
-                    } else {
-                        body.classList.remove('description-open');
-                    }
-                }
-            });
-            
-            // Close description with the X button (mobile)
-            closeDescriptionBtn.addEventListener('click', function() {
-                demoContainer.classList.remove('description-active');
-                showDescriptionBtn.textContent = 'Show Info';
-                body.classList.remove('description-open');
             });
             
             // Handle iframe load events
@@ -557,15 +433,6 @@
                         e.preventDefault();
                     }
                 }, { passive: false });
-                
-                // Handle touch events inside description panel
-                demoDescription.addEventListener('touchstart', function(e) {
-                    e.stopPropagation();
-                });
-                
-                demoDescription.addEventListener('touchmove', function(e) {
-                    e.stopPropagation();
-                });
             }
         });
     </script>
