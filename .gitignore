@@ -1,0 +1,45 @@
+# Backup directory
+C:\Backups/
+backup/
+
+# IDE and editor files
+.vscode/
+*.swp
+*.swo
+*.sublime-workspace
+*.sublime-project
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Project specific
+src/demos/keypad/old_versions/
+*.7z
+*.zip
+*.rar
+*.tar
+*.gz
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*~
+
+# Log files
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local development
+.env
+.env.local
+.env.*.local 
