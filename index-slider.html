@@ -266,11 +266,13 @@
 
         #slider-menu li {
             margin-bottom: 5px;
+            position: relative;
         }
 
         #slider-menu .demo-link {
             display: block;
             padding: 12px 15px;
+            padding-right: 100px;
             color: var(--text-color);
             text-decoration: none;
             border-radius: 5px;
@@ -293,12 +295,11 @@
 
         /* Style for the last updated date */
         .last-updated {
-            display: block;
             font-size: 0.75em;
             color: #888;
-            margin-top: -1.5em; /* Adjust to position relative to the link */
-            margin-right: 15px; /* Add right margin */
-            text-align: right; /* Align text to the right */
+            position: absolute;
+            top: 14px;
+            right: 15px;
         }
 
         /* Optional: Close button inside the slider */
