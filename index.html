@@ -219,6 +219,15 @@
                 padding: 0 10px;
             }
         }
+
+        /* Style for the last updated date display */
+        #lastUpdatedDisplay {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #aaa;
+            text-align: center;
+            min-height: 1.2em; /* Prevent layout shift */
+        }
     </style>
 </head>
 <body>
@@ -269,6 +278,7 @@
                     <option value="src/demos/keypad/up-down/up-down_1.0.html" data-description="Up-Down selection system for navigation and option selection (version 1.0)">Up-Down Selection System v1.0</option>
                 </optgroup>
             </select>
+            <div id="lastUpdatedDisplay"></div>
         </div>
     </div>
     
@@ -338,8 +348,29 @@
                 .success, .success-text { color: #4CAF50 !important; }
             `;
             
+            // --- Fetch Last Updated Date Function ---
+            async function fetchLastModified(url) {
+                try {
+                    const response = await fetch(url, { method: 'HEAD' });
+                    if (response.ok) {
+                        const lastModified = response.headers.get('Last-Modified');
+                        if (lastModified) {
+                            const date = new Date(lastModified);
+                            // Format as MM/DD/YYYY
+                            return date.toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' });
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Error fetching HEAD for ${url}:`, error);
+                }
+                return null; // Return null if fetch fails or header is missing
+            }
+
+            // --- Load Demo Functionality ---
+            const lastUpdatedDisplay = document.getElementById('lastUpdatedDisplay'); // Get the display element
+
             // Load the selected demo
-            demoSelector.addEventListener('change', function() {
+            demoSelector.addEventListener('change', async function() {
                 const selectedOption = this.options[this.selectedIndex];
                 const demoUrl = selectedOption.value;
                 const demoName = selectedOption.textContent;
@@ -348,6 +379,14 @@
                 // Show loading indicator
                 loadingOverlay.classList.add('active');
                 
+                // Fetch and display last updated date
+                if (demoUrl) {
+                    const lastModifiedDate = await fetchLastModified(demoUrl);
+                    lastUpdatedDisplay.textContent = lastModifiedDate ? `Updated: ${lastModifiedDate}` : '';
+                } else {
+                    lastUpdatedDisplay.textContent = ''; // Clear if no demo selected
+                }
+
                 // Set the iframe source
                 demoFrame.style.opacity = 0;
                 setTimeout(() => {
