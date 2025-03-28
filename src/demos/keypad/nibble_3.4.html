@@ -59,12 +59,14 @@
             color: var(--text-color);
         }
         
-        .container {
+        .container, .instructions {
+            width: 90%;
+            max-width: 400px;
+            padding: 15px;
             background-color: var(--container-bg);
             border-radius: var(--border-radius);
-            padding: 30px;
-            width: var(--container-width);
             box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
         }
         
         .title {
@@ -78,20 +80,21 @@
                 ". top ."
                 "left . right"
                 ". bottom .";
-            gap: 5px;
-            margin-bottom: 60px;
-            width: 300px;
+            gap: 10px;
+            margin-bottom: 40px;
+            width: auto;
             margin-left: auto;
             margin-right: auto;
+            justify-content: center;
         }
         
         .button {
-            height: 100px;
-            width: 100px;
+            width: clamp(80px, 25vmin, 110px);
+            height: clamp(80px, 25vmin, 110px);
             background-color: var(--button-bg);
             border: none;
             color: var(--text-color);
-            font-size: 22px;
+            font-size: clamp(18px, 5vmin, 24px);
             cursor: pointer;
             box-shadow: 0 5px 10px rgba(0,0,0,0.2);
             transition: all 0.1s;
@@ -226,7 +229,7 @@
         .nibble-display {
             display: flex;
             justify-content: center;
-            margin-bottom: 60px;
+            margin-bottom: 40px;
             background-color: var(--display-bg);
             padding: 10px;
             border-radius: 5px;
@@ -247,13 +250,8 @@
         }
         
         .instructions {
-            background-color: var(--container-bg);
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 20px;
-            width: var(--container-width);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            color: var(--display-text);
+            margin-left: auto;
+            margin-right: auto;
         }
         
         .current-value-display {
@@ -283,19 +281,28 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
         
-        /* Mobile optimization */
+        /* Mobile optimizations */
         @media (max-width: 768px) {
-            body { padding: 10px; }
+            body { 
+                padding: 10px;
+            }
             
             .container, .instructions {
-                width: 90%;
-                max-width: 350px;
                 padding: 15px;
             }
             
-            .keypad { gap: 15px; }
-            .button { height: 100px; }
-            h1 { font-size: 1.5rem; }
+            .keypad { 
+                gap: clamp(5px, 3vw, 15px);
+                margin-bottom: 30px;
+            }
+            
+            .nibble-display {
+                margin-bottom: 30px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
         }
         
         /* Dark mode */

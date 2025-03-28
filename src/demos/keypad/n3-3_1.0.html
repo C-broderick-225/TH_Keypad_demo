@@ -48,7 +48,8 @@
             background-color: var(--container-bg);
             border-radius: 15px;
             padding: var(--container-padding);
-            width: var(--container-width);
+            width: 90%;
+            max-width: 400px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.3);
             position: relative;
         }
@@ -73,21 +74,21 @@
                 ". top ."
                 "left . right"
                 ". . .";
-            gap: 15px;
-            margin-bottom: 60px;
-            width: 300px;
+            gap: 10px;
+            margin-bottom: 40px;
+            width: auto;
             margin-left: auto;
             margin-right: auto;
+            justify-content: center;
         }
         
         .button {
-            height: 100px;
-            width: 100px;
+            width: clamp(80px, 25vmin, 110px);
+            height: clamp(80px, 25vmin, 110px);
             background-color: var(--button-bg);
             border: none;
             border-radius: 20px;
             color: white;
-            font-size: 24px;
             cursor: pointer;
             box-shadow: 0 5px 10px rgba(0,0,0,0.2);
             transition: all 0.15s ease;
@@ -107,14 +108,14 @@
         
         .button span:first-child {
             top: 25%;
-            font-size: 24px;
+            font-size: clamp(18px, 5vmin, 24px);
             transform: rotate(-45deg) translateX(-8px);
         }
         
         .button .values {
             position: absolute;
             bottom: 15%;
-            font-size: 18px;
+            font-size: clamp(12px, 3vmin, 18px);
             color: #888;
             width: 100%;
             text-align: center;
@@ -281,9 +282,12 @@
             padding: 20px;
             border-radius: 10px;
             margin-top: 20px;
-            width: var(--container-width);
+            width: 90%;
+            max-width: 400px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             color: var(--text-color);
+            margin-left: auto;
+            margin-right: auto;
         }
         
         .instructions h3 {
@@ -323,18 +327,12 @@
             }
             
             .container, .instructions {
-                width: 90%;
-                max-width: 400px;
                 padding: 15px;
             }
             
             .keypad {
-                gap: 15px;
-            }
-            
-            .button {
-                height: 80px;
-                width: 80px;
+                gap: clamp(5px, 3vw, 15px);
+                margin-bottom: 30px;
             }
             
             h1 {
@@ -389,12 +387,13 @@
         </div>
         <div>
             <h2>All 3 buttons at once = 0</h2>
-            <h2>(Single Press = Cancel, Double Press = Confirm)</h2>
         </div>
         
         <div class="action-buttons">
-            <button class="action-button" id="actionBtn">CANCEL / CONFIRM</button>
+            <button class="action-button" id="actionBtn">CONFIRM / CANCEL</button>
         </div>
+        
+        <h2 style="font-size: 0.9rem; margin-top: 5px; margin-bottom: 15px; text-align: center; color: #bbb;"> (Single Press = Confirm, Double Press = Cancel)</h2>
         
         <div class="status" id="status"></div>
     </div>
@@ -473,7 +472,7 @@
             inputStartTime: 0,
             timeoutId: null,
             lastActionButtonPress: 0,
-            cancelTimeoutId: null
+            confirmTimeoutId: null
         };
         
         // DOM Elements
@@ -687,26 +686,26 @@
             const now = Date.now();
             const timeSinceLastPress = now - system.lastActionButtonPress;
             
+            // Clear any pending confirm timeout from previous single press
+            if (system.confirmTimeoutId) {
+                clearTimeout(system.confirmTimeoutId);
+                system.confirmTimeoutId = null;
+            }
+
             if (timeSinceLastPress < CONFIG.DOUBLE_PRESS_WINDOW) {
-                // Double press detected - Confirm entry
-                handleConfirm();
-                system.lastActionButtonPress = 0; // Reset timer
-                
-                // Clear any pending cancel timeout
-                if (system.cancelTimeoutId) {
-                    clearTimeout(system.cancelTimeoutId);
-                    system.cancelTimeoutId = null;
-                }
+                // Double press detected - Cancel entry
+                handleCancel(); // Swapped: Call cancel on double press
+                system.lastActionButtonPress = 0; // Reset timer fully after double press
             } else {
                 // First press - Set up for potential double press
-                // Don't cancel immediately, wait to see if it's a double press
                 system.lastActionButtonPress = now;
                 
-                // Schedule the cancel action after the double-press window
-                system.cancelTimeoutId = setTimeout(() => {
-                    handleCancel();
-                    system.lastActionButtonPress = 0;
-                    system.cancelTimeoutId = null;
+                // Schedule the confirm action after the double-press window
+                // If a second press comes within the window, this timeout will be cleared above.
+                system.confirmTimeoutId = setTimeout(() => {
+                    handleConfirm(); // Swapped: Call confirm on single press (after delay)
+                    system.lastActionButtonPress = 0; // Reset timer after action completes
+                    system.confirmTimeoutId = null;
                 }, CONFIG.DOUBLE_PRESS_WINDOW);
             }
         }

@@ -47,7 +47,8 @@
             background-color: var(--container-bg);
             border-radius: 15px;
             padding: var(--container-padding);
-            width: var(--container-width);
+            width: 90%;
+            max-width: 400px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.3);
             position: relative;
         }
@@ -72,21 +73,22 @@
                 ". top ."
                 "left . right"
                 ". bottom .";
-            gap: 5px;
-            margin-bottom: 60px;
-            width: 300px;
+            gap: 10px;
+            margin-bottom: 40px;
+            width: auto;
             margin-left: auto;
             margin-right: auto;
+            justify-content: center;
         }
         
         .button {
-            height: 100px;
-            width: 100px;
+            width: clamp(80px, 25vmin, 110px);
+            height: clamp(80px, 25vmin, 110px);
             background-color: var(--button-bg);
             border: none;
             border-radius: 20px;
             color: white;
-            font-size: 24px;
+            font-size: clamp(18px, 5vmin, 24px);
             cursor: pointer;
             box-shadow: 0 5px 10px rgba(0,0,0,0.2);
             transition: all 0.15s ease;
@@ -258,7 +260,8 @@
             padding: 20px;
             border-radius: 10px;
             margin-top: 20px;
-            width: var(--container-width);
+            width: 90%;
+            max-width: 400px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             color: var(--text-color);
         }
@@ -275,18 +278,12 @@
             }
             
             .container, .instructions {
-                width: 90%;
-                max-width: 400px;
                 padding: 15px;
             }
             
             .keypad {
-                gap: 15px;
-            }
-            
-            .button {
-                height: 80px;
-                width: 80px;
+                gap: clamp(5px, 3vw, 15px);
+                margin-bottom: 30px;
             }
             
             h1 {

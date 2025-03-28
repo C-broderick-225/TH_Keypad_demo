@@ -29,6 +29,7 @@
 
             /* CSS Variables for Sliders */
             --keypad-gap-var: 0px;
+            --keypad-overlap-var: 0px;
             --button-size-var: 100px;
         }
 
@@ -142,9 +143,18 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
         
-        #btn1 { grid-area: top; }
-        #btn2 { grid-area: left; }
-        #btn3 { grid-area: right; }
+        #btn1 {
+            grid-area: top;
+            margin-bottom: calc(-1 * var(--keypad-overlap-var));
+        }
+        #btn2 {
+            grid-area: left;
+            margin-right: calc(-1 * var(--keypad-overlap-var));
+        }
+        #btn3 {
+            grid-area: right;
+            margin-left: calc(-1 * var(--keypad-overlap-var));
+        }
         
         /* LED indicators */
         .leds {
@@ -479,11 +489,11 @@
             </div>
         </div>
         
-        <h2 style="font-size: 0.9rem; margin-top: -15px; margin-bottom: 15px;"> (Single Press = Cancel, Double Press = Confirm)</h2>
-        
         <div class="action-buttons">
-            <button class="action-button" id="actionBtn">CANCEL / CONFIRM</button>
+            <button class="action-button" id="actionBtn">CONFIRM / CANCEL</button>
         </div>
+
+        <h2 style="font-size: 0.9rem; margin-top: 5px; margin-bottom: 15px; text-align: center; color: #bbb;"> (Single Press = Confirm, Double Press = Cancel)</h2>
 
         <!-- Cycle Timeout Slider -->
         <div class="slider-container">
@@ -494,8 +504,8 @@
 
         <!-- Button Spacing Slider -->
         <div class="slider-container">
-            <label for="buttonSpacingSlider">Button Spacing:</label>
-            <input type="range" id="buttonSpacingSlider" min="0" max="30" step="1">
+            <label for="buttonSpacingSlider">Button Spacing/Overlap:</label>
+            <input type="range" id="buttonSpacingSlider" min="-20" max="30" step="1">
             <span id="buttonSpacingValue"></span> px
         </div>
 
@@ -578,7 +588,7 @@
             inputStartTime: 0,
             timeoutId: null,
             lastActionButtonPress: 0,
-            cancelTimeoutId: null
+            confirmTimeoutId: null
         };
         
         // DOM Elements
@@ -670,15 +680,30 @@
             const slider = elements.buttonSpacingSlider;
             const valueDisplay = elements.buttonSpacingValue;
             const root = document.documentElement;
-            const initialValue = parseInt(root.style.getPropertyValue('--keypad-gap-var') || getComputedStyle(root).getPropertyValue('--keypad-gap-var'), 10);
 
-            slider.value = initialValue;
-            valueDisplay.textContent = initialValue;
+            // Set initial slider value directly to -20
+            const initialSliderValue = -20;
+
+            slider.value = initialSliderValue;
+            valueDisplay.textContent = 0; // Display 0 initially instead of -20
+
+            // Apply initial CSS based on the fixed starting value (-20)
+            // Since it's negative, set gap to 0 and overlap to 20
+            root.style.setProperty('--keypad-gap-var', `0px`);
+            root.style.setProperty('--keypad-overlap-var', `${-initialSliderValue}px`); // 20px
 
             slider.addEventListener('input', () => {
-                const newValue = slider.value;
-                root.style.setProperty('--keypad-gap-var', `${newValue}px`);
-                valueDisplay.textContent = newValue;
+                const newValue = parseInt(slider.value, 10);
+                if (newValue >= 0) {
+                    // Positive value: Adjust gap, reset overlap
+                    root.style.setProperty('--keypad-gap-var', `${newValue}px`);
+                    root.style.setProperty('--keypad-overlap-var', `0px`);
+                } else {
+                    // Negative value: Reset gap, set overlap (as positive value)
+                    root.style.setProperty('--keypad-gap-var', `0px`);
+                    root.style.setProperty('--keypad-overlap-var', `${-newValue}px`); // Use absolute value for overlap
+                }
+                valueDisplay.textContent = newValue; // Display the actual slider value (-20 to 30) after interaction
             });
         }
 
@@ -718,26 +743,26 @@
             const now = Date.now();
             const timeSinceLastPress = now - system.lastActionButtonPress;
             
+            // Clear any pending confirm timeout from previous single press
+            if (system.confirmTimeoutId) {
+                clearTimeout(system.confirmTimeoutId);
+                system.confirmTimeoutId = null;
+            }
+
             if (timeSinceLastPress < CONFIG.DOUBLE_PRESS_WINDOW) {
-                // Double press detected - Confirm entry
-                handleConfirm();
-                system.lastActionButtonPress = 0; // Reset timer
-                
-                // Clear any pending cancel timeout
-                if (system.cancelTimeoutId) {
-                    clearTimeout(system.cancelTimeoutId);
-                    system.cancelTimeoutId = null;
-                }
+                // Double press detected - Cancel entry
+                handleCancel(); // Swapped: Call cancel on double press
+                system.lastActionButtonPress = 0; // Reset timer fully after double press
             } else {
                 // First press - Set up for potential double press
-                // Don't cancel immediately, wait to see if it's a double press
                 system.lastActionButtonPress = now;
                 
-                // Schedule the cancel action after the double-press window
-                system.cancelTimeoutId = setTimeout(() => {
-                    handleCancel();
-                    system.lastActionButtonPress = 0;
-                    system.cancelTimeoutId = null;
+                // Schedule the confirm action after the double-press window
+                // If a second press comes within the window, this timeout will be cleared above.
+                system.confirmTimeoutId = setTimeout(() => {
+                    handleConfirm(); // Swapped: Call confirm on single press (after delay)
+                    system.lastActionButtonPress = 0; // Reset timer after action completes
+                    system.confirmTimeoutId = null;
                 }, CONFIG.DOUBLE_PRESS_WINDOW);
             }
         }

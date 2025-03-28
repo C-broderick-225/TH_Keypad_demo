@@ -28,6 +28,7 @@
 
             /* CSS Variables for Sliders */
             --keypad-gap-var: 0px;
+            --keypad-overlap-var: 0px;
             --button-size-var: 100px;
         }
 
@@ -148,10 +149,22 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
         
-        #btn1 { grid-area: top; }
-        #btn2 { grid-area: left; }
-        #btn3 { grid-area: right; }
-        #btn4 { grid-area: bottom; }
+        #btn1 {
+            grid-area: top;
+            margin-bottom: calc(-1 * var(--keypad-overlap-var));
+        }
+        #btn2 {
+            grid-area: left;
+            margin-right: calc(-1 * var(--keypad-overlap-var));
+        }
+        #btn3 {
+            grid-area: right;
+            margin-left: calc(-1 * var(--keypad-overlap-var));
+        }
+        #btn4 {
+            grid-area: bottom;
+            margin-top: calc(-1 * var(--keypad-overlap-var));
+        }
         
         /* LED indicators */
         .leds {
@@ -474,8 +487,8 @@
 
         <!-- Button Spacing Slider -->
         <div class="slider-container">
-            <label for="buttonSpacingSlider">Button Spacing:</label>
-            <input type="range" id="buttonSpacingSlider" min="0" max="30" step="1">
+            <label for="buttonSpacingSlider">Button Spacing/Overlap:</label>
+            <input type="range" id="buttonSpacingSlider" min="-20" max="30" step="1">
             <span id="buttonSpacingValue"></span> px
         </div>
 
@@ -655,15 +668,30 @@
             const slider = elements.buttonSpacingSlider;
             const valueDisplay = elements.buttonSpacingValue;
             const root = document.documentElement;
-            const initialValue = parseInt(root.style.getPropertyValue('--keypad-gap-var') || getComputedStyle(root).getPropertyValue('--keypad-gap-var'), 10);
+            
+            // Set initial slider value directly to -20
+            const initialSliderValue = -20; 
 
-            slider.value = initialValue;
-            valueDisplay.textContent = initialValue;
+            slider.value = initialSliderValue;
+            valueDisplay.textContent = 0; // Display 0 initially instead of -20
+
+            // Apply initial CSS based on the fixed starting value (-20)
+            // Since it's negative, set gap to 0 and overlap to 20
+            root.style.setProperty('--keypad-gap-var', `0px`);
+            root.style.setProperty('--keypad-overlap-var', `${-initialSliderValue}px`); // 20px
 
             slider.addEventListener('input', () => {
-                const newValue = slider.value;
-                root.style.setProperty('--keypad-gap-var', `${newValue}px`);
-                valueDisplay.textContent = newValue;
+                const newValue = parseInt(slider.value, 10);
+                if (newValue >= 0) {
+                    // Positive value: Adjust gap, reset overlap
+                    root.style.setProperty('--keypad-gap-var', `${newValue}px`);
+                    root.style.setProperty('--keypad-overlap-var', `0px`);
+                } else {
+                    // Negative value: Reset gap, set overlap (as positive value)
+                    root.style.setProperty('--keypad-gap-var', `0px`);
+                    root.style.setProperty('--keypad-overlap-var', `${-newValue}px`); // Use absolute value for overlap
+                }
+                valueDisplay.textContent = newValue; // Display the actual slider value (-20 to 30) after interaction
             });
         }
 

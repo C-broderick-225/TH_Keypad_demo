@@ -40,7 +40,8 @@
         .container, .instructions {
             box-shadow: 0 10px 25px rgba(0,0,0,0.3);
             border-radius: 15px;
-            width: 320px;
+            width: 90%;
+            max-width: 400px;
             margin-bottom: 20px;
             user-select: none;
         }
@@ -57,19 +58,21 @@
                 ". top ."
                 "left . right"
                 ". bottom .";
-            gap: 5px;
-            margin-bottom: 60px;
-            width: 300px;
-            margin: 0 auto 60px;
+            gap: 10px;
+            margin-bottom: 40px;
+            width: auto;
+            margin-left: auto;
+            margin-right: auto;
+            justify-content: center;
         }
         
         .button {
-            height: 100px;
-            width: 100px;
+            width: clamp(80px, 25vmin, 110px);
+            height: clamp(80px, 25vmin, 110px);
             background-color: var(--button-bg);
             border: none;
             color: var(--text-color);
-            font-size: 22px;
+            font-size: clamp(18px, 5vmin, 24px);
             cursor: pointer;
             box-shadow: 0 5px 10px rgba(0,0,0,0.2);
             transition: all 0.1s;
@@ -284,15 +287,12 @@
             body { padding: 10px; }
             
             .container, .instructions {
-                width: 90%;
-                max-width: 350px;
                 padding: 15px;
             }
             
             .keypad { 
-                gap: 15px; 
-                width: auto; /* Allow keypad to shrink if needed */
-                margin: 0 auto 40px; /* Keep centering and adjust bottom margin */
+                gap: clamp(5px, 3vw, 15px);
+                margin-bottom: 30px;
             }
             h1 { font-size: 1.5rem; }
         }

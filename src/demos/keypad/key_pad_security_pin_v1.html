@@ -23,26 +23,27 @@
             }
             
             .container {
-                width: 90% !important;
-                max-width: 350px;
-                padding: 15px !important;
+                /* width: 90% !important; */ /* Base style will handle */
+                /* max-width: 350px; */ /* Base style will handle */
+                padding: 15px !important; /* Keep smaller padding */
             }
             
-            .keypad {
-                gap: 15px !important;
-            }
+            /* .keypad { */ /* Handled by clamp() */
+                /* gap: 15px !important; */ 
+            /* } */
             
-            .button {
-                height: 100px !important;  /* Larger touch targets */
-            }
+            /* .button { */ /* Handled by clamp() */
+                /* height: 100px !important; */
+            /* } */
             
             h1 {
                 font-size: 1.5rem;
             }
             
             .instructions {
-                width: 90% !important;
-                max-width: 350px;
+                /* width: 90% !important; */ /* Base style will handle */
+                /* max-width: 350px; */ /* Base style will handle */
+                 padding: 15px;
             }
         }
         
@@ -50,7 +51,9 @@
             background-color: #333;
             border-radius: 15px;
             padding: 30px;
-            width: 320px;
+            /* width: 320px; */ /* Use responsive width */
+            width: 90%;
+            max-width: 400px; /* Adjusted max-width */
             box-shadow: 0 10px 25px rgba(0,0,0,0.3);
         }
         
@@ -74,23 +77,32 @@
         .keypad {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
+            gap: clamp(10px, 4vw, 20px); /* Responsive gap */
             margin-bottom: 30px;
+            /* Center keypad content if container is wider */
+            justify-content: center; 
+            align-content: center;
+            margin-left: auto;
+            margin-right: auto;
+            max-width: 280px; /* Prevent buttons getting too far apart */
         }
         
         .button {
-            height: 80px;
+            /* height: 80px; */ /* Use clamp */
+            height: clamp(70px, 20vmin, 90px); /* Responsive height */
             background-color: #444;
             border: none;
             border-radius: 10px;
             color: white;
-            font-size: 24px;
+            /* font-size: 24px; */ /* Use clamp */
+            font-size: clamp(18px, 5vmin, 24px); /* Responsive font size */
             cursor: pointer;
             box-shadow: 0 5px 10px rgba(0,0,0,0.2);
             transition: all 0.1s;
             display: flex;
             align-items: center;
             justify-content: center;
+            /* Width will be determined by grid column (1fr) */
         }
         
         .button:hover {
@@ -201,8 +213,12 @@
             padding: 20px;
             border-radius: 10px;
             margin-top: 20px;
-            width: 320px;
+            /* width: 320px; */ /* Use responsive width */
+            width: 90%;
+            max-width: 400px; /* Adjusted max-width */
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-left: auto; /* Center instructions box */
+            margin-right: auto; /* Center instructions box */
         }
         
         .instructions h3 {
