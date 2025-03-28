@@ -554,9 +554,7 @@
                     if (response.ok) {
                         const lastModified = response.headers.get('Last-Modified');
                         if (lastModified) {
-                            const date = new Date(lastModified);
-                            // Format as MM/DD/YYYY (adjust locale as needed)
-                            return date.toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' });
+                            return lastModified;
                         }
                     }
                 } catch (error) {
@@ -565,13 +563,41 @@
                 return null; // Return null if fetch fails or header is missing
             }
 
+            // --- Format Date as Relative Time ---
+            function formatRelativeTime(dateString) {
+                if (!dateString) return null;
+
+                const date = new Date(dateString);
+                const now = new Date();
+                const seconds = Math.round((now - date) / 1000);
+                const minutes = Math.round(seconds / 60);
+                const hours = Math.round(minutes / 60);
+                const days = Math.round(hours / 24);
+
+                if (seconds < 60) {
+                    return 'just now';
+                } else if (minutes < 60) {
+                    return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+                } else if (hours < 24) {
+                    return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+                } else if (days === 1) {
+                    return 'yesterday';
+                } else if (days <= 6) { // Show "X days ago" up to 6 days
+                    return `${days} days ago`;
+                } else {
+                    // Fallback to MM/DD/YYYY for older dates
+                    return date.toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' });
+                }
+            }
+
             demoLinks.forEach(async (link) => {
                 const url = link.getAttribute('href');
                 const lastUpdatedSpan = link.nextElementSibling; // Get the span right after the link
                 if (url && lastUpdatedSpan && lastUpdatedSpan.classList.contains('last-updated')) {
-                    const lastModifiedDate = await fetchLastModified(url);
-                    if (lastModifiedDate) {
-                        lastUpdatedSpan.textContent = `Updated: ${lastModifiedDate}`;
+                    const lastModifiedHeader = await fetchLastModified(url); // Fetch the header string
+                    const relativeTime = formatRelativeTime(lastModifiedHeader); // Format it
+                    if (relativeTime) {
+                        lastUpdatedSpan.textContent = `Updated: ${relativeTime}`;
                     } else {
                         lastUpdatedSpan.textContent = ''; // Or 'Updated: N/A'
                     }
