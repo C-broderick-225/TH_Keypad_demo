@@ -82,6 +82,18 @@
         }
         
         /* Keypad layout */
+        /* New wrapper for centering */
+        .keypad-wrapper {
+            position: relative;
+            margin-top: 20px; /* Add buffer above */
+            margin-bottom: 50px; /* Increase buffer below */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 160px; /* Add minimum height like N4-3 */
+            width: 100%; /* Ensure wrapper takes full width for centering */
+        }
+
         .keypad {
             display: grid;
             grid-template-areas:
@@ -89,10 +101,11 @@
                 "left . right"
                 ". . .";
             gap: 15px;
-            margin-bottom: 60px;
-            width: 325px;
-            margin-left: auto;
-            margin-right: auto;
+            /* margin-bottom: 60px; Removed, handled by wrapper */
+            width: 325px; /* Keep specific width for this layout */
+            /* margin-left: auto; Removed */
+            /* margin-right: auto; Removed */
+            place-items: center; /* Add place-items for grid centering */
         }
         
         .button {
@@ -121,20 +134,11 @@
         }
         
         .button span:first-child {
-            top: 25%;
-            font-size: 24px;
-            transform: rotate(-45deg) translateX(-8px);
-        }
-        
-        .button .values {
-            position: absolute;
-            bottom: 15%;
-            font-size: 18px;
-            color: #888;
-            width: 100%;
-            text-align: center;
-            transform: rotate(-45deg) translateX(15px);
-            left: 0;
+            top: 50%;
+            left: 50%;
+            font-size: 28px;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            line-height: 1;
         }
         
         .button:hover {
@@ -258,14 +262,14 @@
             margin: 5px 0;
         }
         
-        /* Cancel and confirm buttons */
+        /* Cancel button styling */
         .action-buttons {
             display: flex;
-            justify-content: center;
+            justify-content: center; /* Center the single button */
             margin-bottom: 20px;
         }
 
-        .action-button {
+        .cancel-button { /* Renamed class */
             height: 40px;
             border: none;
             border-radius: var(--border-radius);
@@ -274,18 +278,18 @@
             cursor: pointer;
             box-shadow: 0 5px 10px rgba(0,0,0,0.2);
             transition: all 0.15s ease;
-            width: 50%;
+            width: 30%; /* Reduced width */
             background-color: var(--cancel-color);
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        .action-button:hover {
-            opacity: 0.9;
+        .cancel-button:hover { /* Added hover effect */
+             background-color: #b71c1c;
         }
 
-        .action-button:active {
+        .cancel-button:active { /* Renamed class */
             transform: translateY(2px);
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
@@ -347,23 +351,28 @@
             <div class="pin-digit" id="digit4">-</div>
         </div>
         
-        <div class="keypad no-select">
-            <button id="btnUp" class="button">
-                <span>↑</span>
-                <div class="values">Up</div>
-            </button>
-            <button id="btnDown" class="button">
-                <span>↓</span>
-                <div class="values">Down</div>
-            </button>
-            <button id="btnConfirm" class="button">
-                <span>✓</span>
-                <div class="values">Confirm</div>
-            </button>
-        </div>
+        <!-- Added keypad-wrapper -->
+        <div class="keypad-wrapper">
+            <div class="keypad no-select">
+                <button id="btnUp" class="button">
+                    <span>↑</span>
+                </button>
+                <button id="btnDown" class="button">
+                    <span>↓</span>
+                </button>
+                <button id="btnConfirm" class="button">
+                    <span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </span>
+                </button>
+            </div>
+        </div> <!-- End keypad-wrapper -->
         
         <div class="action-buttons">
-            <button class="action-button" id="actionBtn">CANCEL / CONFIRM</button>
+            <!-- Updated button ID, text, and class -->
+            <button class="cancel-button" id="btnCancel">CANCEL</button>
         </div>
         
         <div class="status" id="status"></div>
@@ -376,15 +385,15 @@
             <li>Up Button (↑): Increase the current digit value (0-9)</li>
             <li>Down Button (↓): Decrease the current digit value (0-9)</li>
             <li>Confirm Button (✓): Lock in the current digit</li>
+            <li>CANCEL Button: Resets the entire PIN entry</li>
         </ul>
         <p><strong>Steps:</strong></p>
         <ol>
-            <li>Use Up/Down buttons to select your desired digit (0-9)</li>
-            <li>Press Confirm to lock in that digit</li>
-            <li>Repeat for all four digits</li>
-            <li>Use the bottom button to finalize your PIN</li>
-            <li>Single press of the bottom button will cancel</li>
-            <li>Double press will confirm the complete PIN</li>
+            <li>Use Up/Down buttons to select your desired digit (0-9).</li>
+            <li>Press Confirm (✓) to lock in that digit.</li>
+            <li>Repeat for all four digits.</li>
+            <li>The PIN will be automatically validated after the fourth digit is confirmed.</li>
+            <li>Press CANCEL at any time to clear the input and start over.</li>
         </ol>
     </div>
     
@@ -436,7 +445,7 @@
             successLed: document.getElementById('successLed'),
             statusDisplay: document.getElementById('status'),
             digits: Array.from(document.querySelectorAll('.pin-digit')),
-            actionButton: document.getElementById('actionBtn'),
+            cancelButton: document.getElementById('btnCancel'),
             currentValue: document.getElementById('currentValue')
         };
         
@@ -462,8 +471,8 @@
                 button.addEventListener('selectstart', e => e.preventDefault());
             });
             
-            // Action button (Cancel/Confirm)
-            elements.actionButton.addEventListener('click', handleActionButtonClick);
+            // Cancel button listener
+            elements.cancelButton.addEventListener('click', handleCancel);
         }
         
         // Handle button events
@@ -478,31 +487,6 @@
             e.stopPropagation();
             const buttonId = this.id;
             handleButtonPress(buttonId, this);
-        }
-        
-        // Handle action button (Cancel/Confirm) press
-        function handleActionButtonClick() {
-            const now = Date.now();
-            const timeSinceLastPress = now - system.lastActionButtonPress;
-            
-            if (timeSinceLastPress < CONFIG.DOUBLE_PRESS_WINDOW) {
-                // Double press detected - Confirm entry
-                handleConfirm();
-                system.lastActionButtonPress = 0;
-                
-                if (system.cancelTimeoutId) {
-                    clearTimeout(system.cancelTimeoutId);
-                    system.cancelTimeoutId = null;
-                }
-            } else {
-                system.lastActionButtonPress = now;
-                
-                system.cancelTimeoutId = setTimeout(() => {
-                    handleCancel();
-                    system.lastActionButtonPress = 0;
-                    system.cancelTimeoutId = null;
-                }, CONFIG.DOUBLE_PRESS_WINDOW);
-            }
         }
         
         // Process button press
@@ -534,9 +518,13 @@
                         updatePinDisplay();
                         
                         if (SECURITY.codeBuffer.length === 4) {
-                            setSystemState(STATE.INPUT_ACTIVE);
-                            log('PIN complete, ready for confirmation');
+                            log('PIN complete, validating...');
+                            validateCode();
                         }
+                    } else if (SECURITY.codeBuffer.length >= 4) {
+                        log('PIN already complete. Press CANCEL to reset.');
+                    } else {
+                        log('Select a digit (Up/Down) before confirming.');
                     }
                     break;
             }
@@ -548,22 +536,19 @@
             setTimeout(() => button.classList.remove('pressed'), 100);
         }
         
-        // Handle confirmation action
-        function handleConfirm() {
-            if (system.state === STATE.LOCKOUT || system.state === STATE.SECURITY_LOCKOUT) return;
-            
-            if (SECURITY.codeBuffer.length === 4) {
-                validateCode();
-            } else {
-                log(`Please enter all ${SECURITY.storedCode.length} digits before confirming. Current: ${SECURITY.codeBuffer.length}`);
-            }
-        }
-        
         // Handle cancel action
         function handleCancel() {
-            log("Input cancelled");
+            log("Input cancelled by user");
             provideHapticFeedback(150);
-            resetSystem();
+            SECURITY.codeBuffer = [];
+            INPUT.currentValue = null;
+            elements.currentValue.textContent = 'Current Value: -';
+            updatePinDisplay();
+            if (system.state === STATE.LOCKOUT || system.state === STATE.SECURITY_LOCKOUT) {
+                 resetSystem();
+            } else if (system.state !== STATE.IDLE) {
+                 setSystemState(STATE.IDLE);
+            }
         }
         
         // Validate the entered code
