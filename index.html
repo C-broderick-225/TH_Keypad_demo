@@ -1,196 +1,434 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Directory</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="color-scheme" content="dark">
+    <title>HT Keypad Demo Showcase</title>
     <style>
+        :root {
+            color-scheme: dark;
+            
+            /* Dark mode colors */
+            --bg-color: #121212;
+            --container-bg: #1e1e1e;
+            --button-bg: #2a2a2a;
+            --button-hover: #3a3a3a;
+            --text-color: #e0e0e0;
+            --accent-color: #4CAF50;
+            --accent-hover: #45a049;
+            --border-color: #333;
+            
+            /* Spacing and sizing */
+            --container-padding: 30px;
+            --border-radius: 10px;
+        }
+        
+        /* Force dark mode regardless of system preference */
+        @media (prefers-color-scheme: light) {
+            :root {
+                color-scheme: dark;
+            }
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            height: 100%;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+        
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
             margin: 0;
-            padding: 20px;
+            padding: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
+            height: 100%;
             touch-action: manipulation;
-        }
-
-        .container {
-            background-color: #333;
-            border-radius: 15px;
-            padding: 30px;
-            width: 320px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            text-align: center;
-        }
-
-        .title {
-            color: #fff;
-            margin-bottom: 20px;
-        }
-
-        .button {
-            display: inline-block;
-            height: 50px;
-            background-color: #444;
-            border: none;
-            border-radius: 10px;
-            color: white;
-            font-size: 18px;
-            cursor: pointer;
-            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
-            transition: all 0.1s;
-            text-decoration: none;
-            line-height: 50px; /* Center text vertically */
-            width: 100%;
-        }
-
-        .button:hover {
-            background-color: #555;
-        }
-
-        .instructions {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 20px;
-            width: 100%;
-            box-sizing: border-box;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-
-        .instructions h3 {
-            margin-top: 0;
-            color: #333;
-        }
-
-        .form-link-button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            display: block;
-            margin: 20px auto;
-            transition: background-color 0.3s ease;
-        }
-
-        .form-link-button:hover {
-            background-color: #45a049;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: none;
         }
         
-        /* New styles for dropdown navigation */
-        .dropdown-nav {
+        .header {
+            background-color: var(--container-bg);
+            padding: 15px 20px;
             width: 100%;
-            margin-bottom: 15px;
+            max-width: 1200px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            color: var(--text-color);
+            margin-bottom: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 1px solid var(--border-color);
+            flex-shrink: 0;
+            border-radius: 0;
+            border-left: none;
+            border-right: none;
+            border-top: none;
+        }
+        
+        .title {
+            margin: 0 0 15px 0;
+            text-align: center;
+        }
+        
+        .controls {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            padding: 0 15px;
         }
         
         .demo-select {
             width: 100%;
             padding: 12px;
             font-size: 16px;
-            border-radius: 10px;
-            border: none;
-            background-color: #444;
-            color: white;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+            background-color: var(--button-bg);
+            color: var(--text-color);
             cursor: pointer;
             margin-bottom: 15px;
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23ffffff%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px top 50%;
+            background-size: 12px auto;
+            padding-right: 30px;
         }
         
         .demo-select:focus {
             outline: none;
-            box-shadow: 0 0 0 2px #4CAF50;
+            box-shadow: 0 0 0 2px var(--accent-color);
         }
         
         .demo-select option {
-            background-color: #333;
-            color: white;
+            background-color: var(--container-bg);
+            color: var(--text-color);
             padding: 10px;
         }
         
         .demo-select optgroup {
             font-weight: bold;
-            color: #4CAF50;
+            color: var(--accent-color);
         }
         
-        /* We can hide the Go button since we'll navigate automatically */
-        .go-button {
-            display: none;
+        .demo-container {
+            width: 100%;
+            max-width: 1200px;
+            flex-grow: 1;
+            height: auto;
+            background-color: var(--container-bg);
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overscroll-behavior: contain;
+            border: none;
+        }
+        
+        .demo-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            transition: opacity 0.3s ease;
+            overflow: hidden;
+            background-color: var(--container-bg);
+            color-scheme: dark;
+        }
+        
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 15;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .loading-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--accent-color);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Dark mode toggle button */
+        .dark-mode-toggle {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--button-bg);
+            transition: background-color 0.3s ease;
+        }
+        
+        .dark-mode-toggle:hover {
+            background-color: var(--button-hover);
+        }
+        
+        @media (max-width: 768px) {
+            .header, .demo-container {
+                width: 100%;
+            }
+            
+            .demo-container {
+                /* Height is now determined by flex-grow */
+            }
+            
+            .controls {
+                padding: 0 10px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2 class="title">Project Directory</h2>
-        
-        <div class="dropdown-nav">
+    <div class="header">
+        <h1 class="title">HT Keypad Demo Showcase</h1>
+        <div class="controls">
             <select id="demoSelector" class="demo-select">
                 <option value="" selected disabled>Select a Demo</option>
-                            
+                
                 <optgroup label="Four Key Button Sum Demos">
-                    <option value="src/demos/keypad/key_pad_security_nibble_v1.1.html">Nibble Sum Demo v1.1</option>
-                    <option value="src/demos/keypad/key_pad_security_nibble_v2.0.html">Nibble Sum Demo v2.0</option>
-                    <option value="src/demos/keypad/nibble_3.4.html">Nibble Sum Demo v3.4</option>
+                    <option value="src/demos/keypad/key_pad_security_nibble_v1.1.html" data-description="Basic four key security system using nibble sum approach (version 1.1)">Nibble Sum Demo v1.1</option>
+                    <option value="src/demos/keypad/key_pad_security_nibble_v2.0.html" data-description="Improved four key security system using nibble sum approach (version 2.0)">Nibble Sum Demo v2.0</option>
+                    <option value="src/demos/keypad/nibble_3.4.html" data-description="Advanced four key security system using nibble sum approach with enhanced features (version 3.4)">Nibble Sum Demo v3.4</option>
                 </optgroup>
 
                 <optgroup label="Three Button Nibble Demos">
-                    <option value="src/demos/keypad/3btn_nibble_3.5.html">Three Button Nibble Demo v3.5</option>
-                    <option value="src/demos/keypad/3btn_SML_v1.3.html">Three Button SML Demo v1.3</option>
+                    <option value="src/demos/keypad/3btn_nibble_3.5.html" data-description="Three button keypad using nibble sum technique (version 3.5)">Three Button Nibble Demo v3.5</option>
+                    <option value="src/demos/keypad/3btn_SML_v1.3.html" data-description="Three button keypad using SML (Small-Medium-Large) interactions (version 1.3)">Three Button SML Demo v1.3</option>
                 </optgroup>
                 
                 <optgroup label="Four Button Letters Demos">
-                    <option value="src/demos/keypad/key_pad_security_letters_v1.html">Letters Demo v1.0</option>
-                    <option value="src/demos/keypad/key_pad_security_letters_v2.html">Letters Demo v2.1</option>
-                    <option value="src/demos/keypad/letters_3.0.html">Letters Demo v3.0</option>
-                    <option value="src/demos/keypad/letters_3.2.html">Letters Demo v3.2</option>
+                    <option value="src/demos/keypad/key_pad_security_letters_v1.html" data-description="Four key security system using letter combinations (version 1.0)">Letters Demo v1.0</option>
+                    <option value="src/demos/keypad/key_pad_security_letters_v2.html" data-description="Improved four key security system using letter combinations (version 2.1)">Letters Demo v2.1</option>
+                    <option value="src/demos/keypad/letters_3.0.html" data-description="Advanced four key security system using letter combinations (version 3.0)">Letters Demo v3.0</option>
+                    <option value="src/demos/keypad/letters_3.2.html" data-description="Further enhanced four key security system using letter combinations (version 3.2)">Letters Demo v3.2</option>
                 </optgroup>
 
                 <optgroup label="Three Button AB-BA-ABC Demos">
-                    <option value="src/demos/keypad/AB-BA-ABC_1.3.html">AB-BA-ABC Demo v1.3</option>
-                    <option value="src/demos/keypad/AB-BA-ABC_2.1.html">AB-BA-ABC Demo v2.1</option>
+                    <option value="src/demos/keypad/AB-BA-ABC_1.3.html" data-description="Three button keypad using AB-BA-ABC sequences (version 1.3)">AB-BA-ABC Demo v1.3</option>
+                    <option value="src/demos/keypad/AB-BA-ABC_2.1.html" data-description="Improved three button keypad using AB-BA-ABC sequences (version 2.1)">AB-BA-ABC Demo v2.1</option>
                 </optgroup>
                 
                 <optgroup label="Four Button PIN Demos">
-                    <option value="src/demos/keypad/key_pad_security_pin_v1.html">Four Digit PIN Demo v1.1</option>
-                    <option value="src/demos/keypad/pin_2.1.html">Four Digit PIN Demo v2.1</option>
+                    <option value="src/demos/keypad/key_pad_security_pin_v1.html" data-description="Four key security system using PIN codes (version 1.1)">Four Digit PIN Demo v1.1</option>
+                    <option value="src/demos/keypad/pin_2.1.html" data-description="Improved four key security system using PIN codes (version 2.1)">Four Digit PIN Demo v2.1</option>
                 </optgroup>
 
                 <optgroup label="N4 (four key) Demos">
-                    <option value="src/demos/keypad/n4-3_1.3.html">N4-3 PIN Demo v1.3</option>
+                    <option value="src/demos/keypad/n4-3_1.3.html" data-description="N4-3 PIN system with four keys (version 1.3)">N4-3 PIN Demo v1.3</option>
                 </optgroup>
 
                 <optgroup label="N3 (three key) Demos">
-                    <option value="src/demos/keypad/n3-4_1.0.html">N3-4 PIN Demo v1.0</option>
-                    <option value="src/demos/keypad/n3-3_1.0.html">N3-3 PIN Demo v1.0</option>
+                    <option value="src/demos/keypad/n3-4_1.0.html" data-description="N3-4 PIN system with three keys (version 1.0)">N3-4 PIN Demo v1.0</option>
+                    <option value="src/demos/keypad/n3-3_1.0.html" data-description="N3-3 PIN system with three keys (version 1.0)">N3-3 PIN Demo v1.0</option>
                 </optgroup>
 
                 <optgroup label="Up-Down Selection Demos">
-                    <option value="src/demos/keypad/up-down_1.0.html">Up-Down Selection System v1.0</option>
+                    <option value="src/demos/keypad/up-down_1.0.html" data-description="Up-Down selection system for navigation and option selection (version 1.0)">Up-Down Selection System v1.0</option>
                 </optgroup>
             </select>
-            
-            <!-- We can keep the button in the HTML but it's hidden with CSS -->
-            <button id="goButton" class="go-button">Go to Selected Demo</button>
+        </div>
+    </div>
+    
+    <div class="demo-container" id="demoContainer">
+        <iframe id="demoFrame" class="demo-frame" src="about:blank" sandbox="allow-same-origin allow-scripts allow-forms" scrolling="auto"></iframe>
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="spinner"></div>
         </div>
     </div>
 
     <script>
-        // Add JavaScript to handle navigation
-        document.getElementById('goButton').addEventListener('click', function() {
-            const selectedValue = document.getElementById('demoSelector').value;
-            if (selectedValue) {
-                window.location.href = selectedValue;
+        document.addEventListener('DOMContentLoaded', function() {
+            const demoSelector = document.getElementById('demoSelector');
+            const demoFrame = document.getElementById('demoFrame');
+            const demoContainer = document.getElementById('demoContainer');
+            const demoText = document.getElementById('demoText');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const body = document.body;
+            
+            // Detect mobile device
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            if (isMobile) {
+                demoContainer.classList.add('mobile');
             }
-        });
-        
-        // Modified to automatically navigate when an option is selected
-        document.getElementById('demoSelector').addEventListener('change', function() {
-            const selectedValue = this.value;
-            if (selectedValue) {
-                window.location.href = selectedValue;
+            
+            // Dark mode CSS to inject into iframes
+            const darkModeCSS = `
+                :root {
+                    color-scheme: dark;
+                }
+                
+                @media (prefers-color-scheme: light) {
+                    :root {
+                        color-scheme: dark;
+                    }
+                }
+                
+                html, body {
+                    background-color: #1e1e1e !important;
+                    color: #e0e0e0 !important;
+                }
+                
+                .container, .keypad, .status, .display, .nibble-display, .instructions {
+                    background-color: #2a2a2a !important;
+                    color: #e0e0e0 !important;
+                    border-color: #333 !important;
+                }
+                
+                button, input, select {
+                    background-color: #333 !important;
+                    color: #e0e0e0 !important;
+                    border-color: #444 !important;
+                }
+                
+                button:hover, input:hover, select:hover {
+                    background-color: #444 !important;
+                }
+                
+                .led.red.inactive { background-color: #553333 !important; }
+                .led.green.inactive { background-color: #335533 !important; }
+                
+                a, a:visited { color: #4CAF50 !important; }
+                
+                /* Invert colors for error/success states */
+                .error, .error-text { color: #ff6b6b !important; }
+                .success, .success-text { color: #4CAF50 !important; }
+            `;
+            
+            // Load the selected demo
+            demoSelector.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                const demoUrl = selectedOption.value;
+                const demoName = selectedOption.textContent;
+                const demoDesc = selectedOption.getAttribute('data-description') || 'No description available';
+                
+                // Show loading indicator
+                loadingOverlay.classList.add('active');
+                
+                // Set the iframe source
+                demoFrame.style.opacity = 0;
+                setTimeout(() => {
+                    demoFrame.src = demoUrl;
+                    demoFrame.onload = function() {
+                        // Hide loading indicator and show iframe
+                        loadingOverlay.classList.remove('active');
+                        demoFrame.style.opacity = 1;
+                        
+                        // Try to inject dark mode styles into the iframe content
+                        try {
+                            const iframeDoc = demoFrame.contentDocument || demoFrame.contentWindow.document;
+                            
+                            // Add meta tag for color scheme
+                            const meta = document.createElement('meta');
+                            meta.name = 'color-scheme';
+                            meta.content = 'dark';
+                            iframeDoc.head.appendChild(meta);
+                            
+                            // Add dark mode styles
+                            const style = iframeDoc.createElement('style');
+                            style.textContent = darkModeCSS;
+                            iframeDoc.head.appendChild(style);
+                            
+                            // Add data-theme attribute to html tag
+                            iframeDoc.documentElement.setAttribute('data-theme', 'dark');
+                            
+                            // Add touch handling styles
+                            const touchStyle = iframeDoc.createElement('style');
+                            touchStyle.textContent = `
+                                body { touch-action: manipulation; -webkit-overflow-scrolling: touch; }
+                                button, input, select { touch-action: manipulation; }
+                            `;
+                            iframeDoc.head.appendChild(touchStyle);
+                            
+                        } catch (e) {
+                            console.log('Cannot modify iframe content due to same-origin policy:', e);
+                        }
+                    };
+                }, 300);
+            });
+            
+            // Handle iframe load events
+            demoFrame.addEventListener('load', function() {
+                if (this.src !== 'about:blank') {
+                    // Successfully loaded a demo
+                    console.log('Demo loaded:', this.src);
+                }
+            });
+            
+            demoFrame.addEventListener('error', function() {
+                console.error('Failed to load demo:', this.src);
+                loadingOverlay.classList.remove('active');
+                demoFrame.srcdoc = `
+                    <html data-theme="dark">
+                    <head>
+                        <meta name="color-scheme" content="dark">
+                        <style>
+                            html, body {
+                                background-color: #1e1e1e;
+                                color: #e0e0e0;
+                            }
+                        </style>
+                    </head>
+                    <body style="display: flex; justify-content: center; align-items: center; height: 100%; margin: 0; background-color: #1e1e1e; color: white; font-family: Arial, sans-serif; touch-action: manipulation;">
+                        <div style="text-align: center; padding: 20px;">
+                            <h2>Error Loading Demo</h2>
+                            <p>The selected demo could not be loaded. Please try another one.</p>
+                        </div>
+                    </body>
+                    </html>
+                `;
+            });
+            
+            // Prevent touch conflicts on mobile
+            if (isMobile) {
+                // Prevent pinch zoom on the container
+                demoContainer.addEventListener('touchmove', function(e) {
+                    if (e.touches.length > 1) {
+                        e.preventDefault();
+                    }
+                }, { passive: false });
             }
         });
     </script>

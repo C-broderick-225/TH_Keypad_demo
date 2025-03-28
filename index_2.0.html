@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Directory</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            touch-action: manipulation;
+        }
+
+        .container {
+            background-color: #333;
+            border-radius: 15px;
+            padding: 30px;
+            width: 320px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        .title {
+            color: #fff;
+            margin-bottom: 20px;
+        }
+
+        .button {
+            display: inline-block;
+            height: 50px;
+            background-color: #444;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+            transition: all 0.1s;
+            text-decoration: none;
+            line-height: 50px; /* Center text vertically */
+            width: 100%;
+        }
+
+        .button:hover {
+            background-color: #555;
+        }
+
+        .instructions {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            width: 100%;
+            box-sizing: border-box;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .instructions h3 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        .form-link-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            display: block;
+            margin: 20px auto;
+            transition: background-color 0.3s ease;
+        }
+
+        .form-link-button:hover {
+            background-color: #45a049;
+        }
+        
+        /* New styles for dropdown navigation */
+        .dropdown-nav {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        
+        .demo-select {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 10px;
+            border: none;
+            background-color: #444;
+            color: white;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+        
+        .demo-select:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px #4CAF50;
+        }
+        
+        .demo-select option {
+            background-color: #333;
+            color: white;
+            padding: 10px;
+        }
+        
+        .demo-select optgroup {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        
+        /* We can hide the Go button since we'll navigate automatically */
+        .go-button {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="title">Project Directory</h2>
+        
+        <div class="dropdown-nav">
+            <select id="demoSelector" class="demo-select">
+                <option value="" selected disabled>Select a Demo</option>
+                            
+                <optgroup label="Four Key Button Sum Demos">
+                    <option value="src/demos/keypad/key_pad_security_nibble_v1.1.html">Nibble Sum Demo v1.1</option>
+                    <option value="src/demos/keypad/key_pad_security_nibble_v2.0.html">Nibble Sum Demo v2.0</option>
+                    <option value="src/demos/keypad/nibble_3.4.html">Nibble Sum Demo v3.4</option>
+                </optgroup>
+
+                <optgroup label="Three Button Nibble Demos">
+                    <option value="src/demos/keypad/3btn_nibble_3.5.html">Three Button Nibble Demo v3.5</option>
+                    <option value="src/demos/keypad/3btn_SML_v1.3.html">Three Button SML Demo v1.3</option>
+                </optgroup>
+                
+                <optgroup label="Four Button Letters Demos">
+                    <option value="src/demos/keypad/key_pad_security_letters_v1.html">Letters Demo v1.0</option>
+                    <option value="src/demos/keypad/key_pad_security_letters_v2.html">Letters Demo v2.1</option>
+                    <option value="src/demos/keypad/letters_3.0.html">Letters Demo v3.0</option>
+                    <option value="src/demos/keypad/letters_3.2.html">Letters Demo v3.2</option>
+                </optgroup>
+
+                <optgroup label="Three Button AB-BA-ABC Demos">
+                    <option value="src/demos/keypad/AB-BA-ABC_1.3.html">AB-BA-ABC Demo v1.3</option>
+                    <option value="src/demos/keypad/AB-BA-ABC_2.1.html">AB-BA-ABC Demo v2.1</option>
+                </optgroup>
+                
+                <optgroup label="Four Button PIN Demos">
+                    <option value="src/demos/keypad/key_pad_security_pin_v1.html">Four Digit PIN Demo v1.1</option>
+                    <option value="src/demos/keypad/pin_2.1.html">Four Digit PIN Demo v2.1</option>
+                </optgroup>
+
+                <optgroup label="N4 (four key) Demos">
+                    <option value="src/demos/keypad/n4-3_1.3.html">N4-3 PIN Demo v1.3</option>
+                </optgroup>
+
+                <optgroup label="N3 (three key) Demos">
+                    <option value="src/demos/keypad/n3-4_1.0.html">N3-4 PIN Demo v1.0</option>
+                    <option value="src/demos/keypad/n3-3_1.0.html">N3-3 PIN Demo v1.0</option>
+                </optgroup>
+
+                <optgroup label="Up-Down Selection Demos">
+                    <option value="src/demos/keypad/up-down_1.0.html">Up-Down Selection System v1.0</option>
+                </optgroup>
+            </select>
+            
+            <!-- We can keep the button in the HTML but it's hidden with CSS -->
+            <button id="goButton" class="go-button">Go to Selected Demo</button>
+        </div>
+    </div>
+
+    <script>
+        // Add JavaScript to handle navigation
+        document.getElementById('goButton').addEventListener('click', function() {
+            const selectedValue = document.getElementById('demoSelector').value;
+            if (selectedValue) {
+                window.location.href = selectedValue;
+            }
+        });
+        
+        // Modified to automatically navigate when an option is selected
+        document.getElementById('demoSelector').addEventListener('change', function() {
+            const selectedValue = this.value;
+            if (selectedValue) {
+                window.location.href = selectedValue;
+            }
+        });
+    </script>
+</body>
+</html> 
