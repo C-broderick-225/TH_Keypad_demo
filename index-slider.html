@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="color-scheme" content="dark">
+    <title>HT Keypad Demo Showcase</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            
+            /* Dark mode colors */
+            --bg-color: #121212;
+            --container-bg: #1e1e1e;
+            --button-bg: #2a2a2a;
+            --button-hover: #3a3a3a;
+            --text-color: #e0e0e0;
+            --accent-color: #4CAF50;
+            --accent-hover: #45a049;
+            --border-color: #333;
+            
+            /* Spacing and sizing */
+            --container-padding: 30px;
+            --border-radius: 10px;
+        }
+        
+        /* Force dark mode regardless of system preference */
+        @media (prefers-color-scheme: light) {
+            :root {
+                color-scheme: dark;
+            }
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            height: 100%;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+            touch-action: manipulation;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: none;
+        }
+        
+        .header {
+            background-color: var(--container-bg);
+            padding: 15px 20px;
+            width: 100%;
+            max-width: 1200px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            color: var(--text-color);
+            margin-bottom: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--border-color);
+            flex-shrink: 0;
+            border-radius: 0;
+            border-left: none;
+            border-right: none;
+            border-top: none;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .title {
+            margin: 0;
+            text-align: right;
+        }
+        
+        .demo-container {
+            width: 100%;
+            max-width: 1200px;
+            flex-grow: 1;
+            height: auto;
+            background-color: var(--container-bg);
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overscroll-behavior: contain;
+            border: none;
+        }
+        
+        .demo-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            transition: opacity 0.3s ease;
+            overflow: hidden;
+            background-color: var(--container-bg);
+            color-scheme: dark;
+        }
+        
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 15;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .loading-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--accent-color);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Dark mode toggle button */
+        .dark-mode-toggle {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--button-bg);
+            transition: background-color 0.3s ease;
+        }
+        
+        .dark-mode-toggle:hover {
+            background-color: var(--button-hover);
+        }
+        
+        @media (max-width: 768px) {
+            .header, .demo-container {
+                width: 100%;
+            }
+            
+            .header {
+                padding: 10px 15px;
+            }
+
+            #menu-toggle {
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+
+            .title {
+                font-size: 1.2em;
+            }
+
+            #slider-menu {
+                width: 250px;
+            }
+        }
+
+        /* Menu Toggle Button */
+        #menu-toggle {
+            background-color: var(--button-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 10px 15px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: var(--border-radius);
+            transition: background-color 0.3s ease;
+            margin-right: 15px;
+        }
+
+        #menu-toggle:hover {
+            background-color: var(--button-hover);
+        }
+
+        /* Slider Menu Overlay */
+        #menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+            z-index: 90;
+        }
+
+        #menu-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Slider Menu Container */
+        #slider-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 300px;
+            max-width: 80%;
+            height: 100%;
+            background-color: rgba(30, 30, 30, 0.95);
+            backdrop-filter: blur(5px);
+            border-right: 1px solid var(--border-color);
+            box-shadow: 5px 0 15px rgba(0,0,0,0.5);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-in-out;
+            z-index: 100;
+            overflow-y: auto;
+            padding: 20px;
+            padding-top: 60px;
+            color: var(--text-color);
+        }
+
+        #slider-menu.active {
+            transform: translateX(0);
+        }
+
+        #slider-menu h2 {
+            color: var(--accent-color);
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 5px;
+        }
+
+        #slider-menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #slider-menu li {
+            margin-bottom: 5px;
+        }
+
+        #slider-menu .demo-link {
+            display: block;
+            padding: 12px 15px;
+            color: var(--text-color);
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.2s ease;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        #slider-menu .demo-link:hover {
+            background-color: var(--button-hover);
+            color: #fff;
+        }
+        
+        #slider-menu .demo-link small {
+            display: block;
+            font-size: 0.8em;
+            color: #aaa;
+            margin-top: 3px;
+        }
+
+        /* Optional: Close button inside the slider */
+        #close-menu-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 28px;
+            cursor: pointer;
+            padding: 5px;
+            line-height: 1;
+        }
+        
+        #close-menu-btn:hover {
+            color: var(--accent-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button id="menu-toggle">☰ Menu</button>
+        <h1 class="title">HT Keypad Demo Showcase</h1>
+    </div>
+
+    <!-- Slider Menu Overlay -->
+    <div id="menu-overlay"></div>
+
+    <!-- Slider Menu -->
+    <div id="slider-menu">
+        <button id="close-menu-btn">&times;</button>
+        <h2>Four Key Button Sum</h2>
+        <ul>
+            <li><a href="src/demos/keypad/nibble/key_pad_security_nibble_v1.1.html" class="demo-link" data-description="Basic four key security system using nibble sum approach (version 1.1)">Nibble Sum Demo v1.1</a></li>
+            <li><a href="src/demos/keypad/nibble/key_pad_security_nibble_v2.0.html" class="demo-link" data-description="Improved four key security system using nibble sum approach (version 2.0)">Nibble Sum Demo v2.0</a></li>
+            <li><a href="src/demos/keypad/nibble/nibble_3.4.html" class="demo-link" data-description="Advanced four key security system using nibble sum approach with enhanced features (version 3.4)">Nibble Sum Demo v3.4</a></li>
+        </ul>
+
+        <h2>Three Button Nibble</h2>
+        <ul>
+            <li><a href="src/demos/keypad/3btn/3btn_nibble_3.5.html" class="demo-link" data-description="Three button keypad using nibble sum technique (version 3.5)">Three Button Nibble Demo v3.5</a></li>
+            <li><a href="src/demos/keypad/3btn/3btn_SML_v1.3.html" class="demo-link" data-description="Three button keypad using SML (Small-Medium-Large) interactions (version 1.3)">Three Button SML Demo v1.3</a></li>
+        </ul>
+        
+        <h2>Four Button Letters</h2>
+        <ul>
+            <li><a href="src/demos/keypad/letters/key_pad_security_letters_v1.html" class="demo-link" data-description="Four key security system using letter combinations (version 1.0)">Letters Demo v1.0</a></li>
+            <li><a href="src/demos/keypad/letters/key_pad_security_letters_v2.html" class="demo-link" data-description="Improved four key security system using letter combinations (version 2.1)">Letters Demo v2.1</a></li>
+            <li><a href="src/demos/keypad/letters/letters_3.0.html" class="demo-link" data-description="Advanced four key security system using letter combinations (version 3.0)">Letters Demo v3.0</a></li>
+            <li><a href="src/demos/keypad/letters/letters_3.2.html" class="demo-link" data-description="Further enhanced four key security system using letter combinations (version 3.2)">Letters Demo v3.2</a></li>
+        </ul>
+
+        <h2>Three Button AB-BA-ABC</h2>
+        <ul>
+            <li><a href="src/demos/keypad/ab-abc/AB-BA-ABC_1.3.html" class="demo-link" data-description="Three button keypad using AB-BA-ABC sequences (version 1.3)">AB-BA-ABC Demo v1.3</a></li>
+            <li><a href="src/demos/keypad/ab-abc/AB-BA-ABC_2.1.html" class="demo-link" data-description="Improved three button keypad using AB-BA-ABC sequences (version 2.1)">AB-BA-ABC Demo v2.1</a></li>
+        </ul>
+        
+        <h2>Four Button PIN</h2>
+        <ul>
+            <li><a href="src/demos/keypad/pin/key_pad_security_pin_v1.html" class="demo-link" data-description="Four key security system using PIN codes (version 1.1)">Four Digit PIN Demo v1.1</a></li>
+            <li><a href="src/demos/keypad/pin/pin_2.1.html" class="demo-link" data-description="Improved four key security system using PIN codes (version 2.1)">Four Digit PIN Demo v2.1</a></li>
+        </ul>
+
+        <h2>N4 (four key)</h2>
+        <ul>
+            <li><a href="src/demos/keypad/n4/n4-3_1.3.html" class="demo-link" data-description="N4-3 PIN system with four keys (version 1.3)">N4-3 PIN Demo v1.3</a></li>
+        </ul>
+
+        <h2>N3 (three key)</h2>
+        <ul>
+            <li><a href="src/demos/keypad/n3/n3-4_1.0.html" class="demo-link" data-description="N3-4 PIN system with three keys (version 1.0)">N3-4 PIN Demo v1.0</a></li>
+            <li><a href="src/demos/keypad/n3/n3-3_1.0.html" class="demo-link" data-description="N3-3 PIN system with three keys (version 1.0)">N3-3 PIN Demo v1.0</a></li>
+        </ul>
+
+        <h2>Up-Down Selection</h2>
+        <ul>
+            <li><a href="src/demos/keypad/up-down/up-down_1.0.html" class="demo-link" data-description="Up-Down selection system for navigation and option selection (version 1.0)">Up-Down Selection System v1.0</a></li>
+        </ul>
+    </div>
+    
+    <div class="demo-container" id="demoContainer">
+        <iframe id="demoFrame" class="demo-frame" src="about:blank" sandbox="allow-same-origin allow-scripts allow-forms" scrolling="auto"></iframe>
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="spinner"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const demoFrame = document.getElementById('demoFrame');
+            const demoContainer = document.getElementById('demoContainer');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const body = document.body;
+            const menuToggle = document.getElementById('menu-toggle');
+            const sliderMenu = document.getElementById('slider-menu');
+            const menuOverlay = document.getElementById('menu-overlay');
+            const closeMenuBtn = document.getElementById('close-menu-btn');
+            const demoLinks = sliderMenu.querySelectorAll('.demo-link');
+            
+            // Detect mobile device
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            if (isMobile) {
+                demoContainer.classList.add('mobile');
+            }
+            
+            // Dark mode CSS to inject into iframes
+            const darkModeCSS = `
+                :root {
+                    color-scheme: dark;
+                }
+                
+                @media (prefers-color-scheme: light) {
+                    :root {
+                        color-scheme: dark;
+                    }
+                }
+                
+                html, body {
+                    background-color: #1e1e1e !important;
+                    color: #e0e0e0 !important;
+                }
+                
+                .container, .keypad, .status, .display, .nibble-display, .instructions {
+                    background-color: #2a2a2a !important;
+                    color: #e0e0e0 !important;
+                    border-color: #333 !important;
+                }
+                
+                button, input, select {
+                    background-color: #333 !important;
+                    color: #e0e0e0 !important;
+                    border-color: #444 !important;
+                }
+                
+                button:hover, input:hover, select:hover {
+                    background-color: #444 !important;
+                }
+                
+                .led.red.inactive { background-color: #553333 !important; }
+                .led.green.inactive { background-color: #335533 !important; }
+                
+                a, a:visited { color: #4CAF50 !important; }
+                
+                /* Invert colors for error/success states */
+                .error, .error-text { color: #ff6b6b !important; }
+                .success, .success-text { color: #4CAF50 !important; }
+            `;
+            
+            // --- Menu Toggle Functionality ---
+            function openMenu() {
+                sliderMenu.classList.add('active');
+                menuOverlay.classList.add('active');
+                menuToggle.setAttribute('aria-expanded', 'true');
+            }
+
+            function closeMenu() {
+                sliderMenu.classList.remove('active');
+                menuOverlay.classList.remove('active');
+                menuToggle.setAttribute('aria-expanded', 'false');
+            }
+
+            menuToggle.addEventListener('click', () => {
+                if (sliderMenu.classList.contains('active')) {
+                    closeMenu();
+                } else {
+                    openMenu();
+                }
+            });
+
+            menuOverlay.addEventListener('click', closeMenu);
+            closeMenuBtn.addEventListener('click', closeMenu);
+
+            // Close menu on Escape key press
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && sliderMenu.classList.contains('active')) {
+                    closeMenu();
+                }
+            });
+
+            // --- Load Demo Functionality ---
+            // Function to load a demo URL
+            function loadDemo(url, name, description) {
+                if (!url) return; // Do nothing if no URL
+
+                console.log(`Loading demo: ${name} (${url}) - ${description}`);
+                
+                // Show loading indicator
+                loadingOverlay.classList.add('active');
+                
+                // Set the iframe source after a short delay for transition
+                demoFrame.style.opacity = 0;
+                setTimeout(() => {
+                    demoFrame.src = url;
+                    demoFrame.onload = function() {
+                        // Hide loading indicator and show iframe
+                        loadingOverlay.classList.remove('active');
+                        demoFrame.style.opacity = 1;
+                        
+                        // Try to inject dark mode styles into the iframe content
+                        try {
+                            const iframeDoc = demoFrame.contentDocument || demoFrame.contentWindow.document;
+                            
+                            // Add meta tag for color scheme
+                            const meta = document.createElement('meta');
+                            meta.name = 'color-scheme';
+                            meta.content = 'dark';
+                            iframeDoc.head.appendChild(meta);
+                            
+                            // Add dark mode styles
+                            const style = iframeDoc.createElement('style');
+                            style.textContent = darkModeCSS;
+                            iframeDoc.head.appendChild(style);
+                            
+                            // Add data-theme attribute to html tag
+                            iframeDoc.documentElement.setAttribute('data-theme', 'dark');
+                            
+                            // Add touch handling styles
+                            const touchStyle = iframeDoc.createElement('style');
+                            touchStyle.textContent = `
+                                body { touch-action: manipulation; -webkit-overflow-scrolling: touch; }
+                                button, input, select { touch-action: manipulation; }
+                            `;
+                            iframeDoc.head.appendChild(touchStyle);
+                            
+                        } catch (e) {
+                            console.log('Cannot modify iframe content due to same-origin policy:', e);
+                        }
+                    };
+                }, 300);
+
+                // Close the menu
+                closeMenu();
+            }
+
+            // Attach event listeners to demo links
+            demoLinks.forEach(link => {
+                link.addEventListener('click', function(event) {
+                    event.preventDefault(); // Prevent default link navigation
+                    const demoUrl = this.getAttribute('href');
+                    const demoName = this.textContent;
+                    const demoDesc = this.getAttribute('data-description') || 'No description available';
+                    loadDemo(demoUrl, demoName, demoDesc);
+                });
+            });
+            
+            // Prevent touch conflicts on mobile
+            if (isMobile) {
+                // Prevent pinch zoom on the container
+                demoContainer.addEventListener('touchmove', function(e) {
+                    if (e.touches.length > 1) {
+                        e.preventDefault();
+                    }
+                }, { passive: false });
+            }
+        });
+    </script>
+</body>
+</html> 
