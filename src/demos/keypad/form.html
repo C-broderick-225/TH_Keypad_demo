@@ -146,7 +146,7 @@
             }
         }
         
-        .back-button {
+        .cancel-button {
             position: absolute;
             top: 20px;
             right: 20px;
@@ -160,13 +160,20 @@
             transition: all 0.1s;
         }
         
-        .back-button:hover {
+        .cancel-button:hover {
             background-color: #555;
         }
         
-        .back-button:active {
+        .cancel-button:active {
             transform: translateY(2px);
-            background-color: #666;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        
+        /* Mobile optimization */
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 20px;
+            }
         }
     </style>
 </head>
@@ -242,7 +249,7 @@
         </form>
     </div>
     
-    <button class="back-button" onclick="window.location.href='/TH_Keypad_demo/'">Back</button>
+    <button class="cancel-button" onclick="window.location.href='/TH_Keypad_demo/'">Cancel</button>
     
     <script>
     document.querySelectorAll('.rating > input').forEach((radio) => {

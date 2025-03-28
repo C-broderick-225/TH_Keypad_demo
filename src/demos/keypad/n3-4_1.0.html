@@ -383,8 +383,8 @@
             color: var(--text-color);
         }
         
-        /* Back button */
-        .back-button {
+        /* Cancel button */
+        .cancel-button {
             position: fixed;
             top: 20px;
             right: 20px;
@@ -399,13 +399,13 @@
             z-index: 100;
         }
 
-        .back-button:hover {
+        .cancel-button:hover {
             background-color: var(--button-hover);
         }
 
-        .back-button:active {
+        .cancel-button:active {
             transform: translateY(2px);
-            background-color: var(--button-active);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
         
         /* Mobile styles */
@@ -427,9 +427,7 @@
     </style>
 </head>
 <body>
-    <h1>N3-4 PIN Demo</h1>
-    
-    <button class="back-button" onclick="window.location.href='/TH_Keypad_demo/'">Back</button>
+    <h1>N3-4 Demo v1.0</h1>
     
     <div class="container no-select">
         <div>

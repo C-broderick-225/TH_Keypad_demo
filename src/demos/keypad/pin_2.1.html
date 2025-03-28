@@ -252,31 +252,6 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
         
-        /* Back button */
-        .back-button {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background-color: var(--button-bg);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 10px 20px;
-            cursor: pointer;
-            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
-            transition: all 0.15s ease;
-            z-index: 100;
-        }
-        
-        .back-button:hover {
-            background-color: var(--button-hover);
-        }
-        
-        .back-button:active {
-            transform: translateY(2px);
-            background-color: var(--button-active);
-        }
-        
         /* Instructions */
         .instructions {
             background-color: var(--container-bg);
@@ -329,8 +304,6 @@
 </head>
 <body>
     <h1>PIN Demo</h1>
-    
-    <button class="back-button" onclick="window.location.href='/HT_Keypad_demo/'">Back</button>
     
     <div class="container no-select">
         <div>

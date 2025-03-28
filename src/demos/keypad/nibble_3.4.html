@@ -283,26 +283,6 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
         
-        .back-button {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background-color: var(--button-bg);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 10px 20px;
-            cursor: pointer;
-            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
-            transition: all 0.1s;
-        }
-        
-        .back-button:hover { background-color: var(--button-hover); }
-        .back-button:active {
-            transform: translateY(2px);
-            background-color: var(--button-active);
-        }
-        
         /* Mobile optimization */
         @media (max-width: 768px) {
             body { padding: 10px; }
@@ -353,8 +333,6 @@
 </head>
 <body>
     <h1>Nibble Demo v3.4</h1>
-    
-    <button class="back-button" onclick="window.location.href='/HT_Keypad_demo/'">Back</button>
     
     <div class="container">
         <div>
