@@ -94,4 +94,58 @@ body {
 
 .dial-numbers {
     /* Style numbers later */
-} 
+}
+
+/* Add variables for dial numbers */
+:root {
+    /* Increased offset to place numbers outside the inner dial */
+    --dial-number-offset: 85px; /* Distance from center */
+    --dial-number-font-size: 14px; /* Slightly smaller */
+    --dial-number-color: #333; /* Color of numbers */
+}
+
+.dial-numbers {
+    position: absolute;
+    width: 100%; /* Relative to dial-assembly */
+    height: 100%;
+    top: 0;
+    left: 0;
+    border-radius: 50%;
+    transform-origin: center center;
+    /* z-index removed, now part of dial-assembly directly */
+}
+
+.dial-number {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px; /* Adjusted size */
+    height: 20px;
+    font-size: var(--dial-number-font-size);
+    font-weight: bold;
+    color: var(--dial-number-color);
+    text-align: center;
+    line-height: 20px;
+    user-select: none;
+}
+
+.dial-pointer {
+    /* Make sure pointer is above numbers */
+    z-index: 2;
+}
+
+/* Position each number using rotation and translation */
+/* Formula: translate(-50%, -50%) rotate(Angle) translateY(Offset) rotate(-Angle) */
+/* Angle = number * 36 degrees */
+
+.num-0 { transform: translate(-50%, -50%) rotate(0deg)   translateY(calc(-1 * var(--dial-number-offset))) rotate(-0deg); }
+.num-1 { transform: translate(-50%, -50%) rotate(36deg)  translateY(calc(-1 * var(--dial-number-offset))) rotate(-36deg); }
+.num-2 { transform: translate(-50%, -50%) rotate(72deg)  translateY(calc(-1 * var(--dial-number-offset))) rotate(-72deg); }
+.num-3 { transform: translate(-50%, -50%) rotate(108deg) translateY(calc(-1 * var(--dial-number-offset))) rotate(-108deg); }
+.num-4 { transform: translate(-50%, -50%) rotate(144deg) translateY(calc(-1 * var(--dial-number-offset))) rotate(-144deg); }
+.num-5 { transform: translate(-50%, -50%) rotate(180deg) translateY(calc(-1 * var(--dial-number-offset))) rotate(-180deg); }
+.num-6 { transform: translate(-50%, -50%) rotate(216deg) translateY(calc(-1 * var(--dial-number-offset))) rotate(-216deg); }
+.num-7 { transform: translate(-50%, -50%) rotate(252deg) translateY(calc(-1 * var(--dial-number-offset))) rotate(-252deg); }
+.num-8 { transform: translate(-50%, -50%) rotate(288deg) translateY(calc(-1 * var(--dial-number-offset))) rotate(-288deg); }
+.num-9 { transform: translate(-50%, -50%) rotate(324deg) translateY(calc(-1 * var(--dial-number-offset))) rotate(-324deg); } 
