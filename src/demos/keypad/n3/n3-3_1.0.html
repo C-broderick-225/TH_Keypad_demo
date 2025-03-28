@@ -372,13 +372,13 @@
         </div>
         
         <div class="keypad no-select">
-            <button class="button" id="btn1" data-values="1,2,3">
+            <button class="button" id="btn1" data-values="4,5,6">
                 <span>1</span>
-                <span class="values">[1,2,3]</span>
-            </button>
-            <button class="button" id="btn2" data-values="4,5,6">
-                <span>2</span>
                 <span class="values">[4,5,6]</span>
+            </button>
+            <button class="button" id="btn2" data-values="1,2,3">
+                <span>2</span>
+                <span class="values">[1,2,3]</span>
             </button>
             <button class="button" id="btn3" data-values="7,8,9">
                 <span>3</span>
@@ -402,17 +402,17 @@
         <h3>How to Use:</h3>
         <p><strong>Button Values:</strong></p>
         <ul>
-            <li>Button 1: [1, 2, 3]</li>
-            <li>Button 2: [4, 5, 6]</li>
+            <li>Button 1: [4, 5, 6]</li>
+            <li>Button 2: [1, 2, 3]</li>
             <li>Button 3: [7, 8, 9]</li>
             <li>All 3 Buttons Pressed Simultaneously: [0]</li>
         </ul>
         <p><strong>Example:</strong> To enter "3018", press:</p>
         <ul>
-            <li>Button 1 three times (for 3)</li>
+            <li>Button 2 three times (for 3)</li>
             <li>All 3 buttons simultaneously (for 0)</li>
-            <li>Button 1 once (for 1)</li>
-            <li>Button 2 three times (for 6), then Button 3 twice (for 8)</li>
+            <li>Button 2 once (for 1)</li>
+            <li>Button 1 three times (for 6), then Button 3 twice (for 8)</li>
         </ul>
         <p>Each digit is logged automatically when you select it. After entering all 4 digits, press the CONFIRM button with a double-press.</p>
         <p><strong>Single press</strong> of the button will cancel the current input.</p>
@@ -443,8 +443,8 @@
         
         // Button values configuration
         const BUTTON_VALUES = {
-            1: ['1', '2', '3'],
-            2: ['4', '5', '6'],
+            1: ['4', '5', '6'],
+            2: ['1', '2', '3'],
             3: ['7', '8', '9']
         };
         
