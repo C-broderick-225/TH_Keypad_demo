@@ -219,15 +219,6 @@
                 padding: 0 10px;
             }
         }
-
-        /* Style for the last updated date display */
-        #lastUpdatedDisplay {
-            margin-top: 10px;
-            font-size: 0.9em;
-            color: #aaa;
-            text-align: right;
-            min-height: 1.2em; /* Prevent layout shift */
-        }
     </style>
 </head>
 <body>
@@ -282,7 +273,6 @@
                     <option value="src/demos/rotary/dial_1.0/dial_1.0.html" data-description="Rotary dial demo with outer and inner rings (version 1.0)">Rotary Dial Demo v1.0</option>
                 </optgroup>
             </select>
-            <div id="lastUpdatedDisplay"></div>
         </div>
     </div>
     
@@ -352,54 +342,7 @@
                 .success, .success-text { color: #4CAF50 !important; }
             `;
             
-            // --- Fetch Last Updated Date Function ---
-            async function fetchLastModified(url) {
-                try {
-                    const response = await fetch(url, { method: 'HEAD' });
-                    if (response.ok) {
-                        const lastModified = response.headers.get('Last-Modified');
-                        if (lastModified) {
-                            const date = new Date(lastModified);
-                            // Format as MM/DD/YYYY
-                            return date.toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' });
-                        }
-                    }
-                } catch (error) {
-                    console.error(`Error fetching HEAD for ${url}:`, error);
-                }
-                return null; // Return null if fetch fails or header is missing
-            }
-
-            // --- Format Date as Relative Time ---
-            function formatRelativeTime(dateString) {
-                if (!dateString) return null;
-
-                const date = new Date(dateString);
-                const now = new Date();
-                const seconds = Math.round((now - date) / 1000);
-                const minutes = Math.round(seconds / 60);
-                const hours = Math.round(minutes / 60);
-                const days = Math.round(hours / 24);
-
-                if (seconds < 60) {
-                    return 'just now';
-                } else if (minutes < 60) {
-                    return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
-                } else if (hours < 24) {
-                    return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-                } else if (days === 1) {
-                    return 'yesterday';
-                } else if (days <= 6) { // Show "X days ago" up to 6 days
-                    return `${days} days ago`;
-                } else {
-                    // Fallback to MM/DD/YYYY for older dates
-                    return date.toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' });
-                }
-            }
-
             // --- Load Demo Functionality ---
-            const lastUpdatedDisplay = document.getElementById('lastUpdatedDisplay'); // Get the display element
-
             // Load the selected demo
             demoSelector.addEventListener('change', async function() {
                 const selectedOption = this.options[this.selectedIndex];
@@ -410,15 +353,6 @@
                 // Show loading indicator
                 loadingOverlay.classList.add('active');
                 
-                // Fetch and display last updated date
-                if (demoUrl) {
-                    const lastModifiedHeader = await fetchLastModified(demoUrl);
-                    const relativeTime = formatRelativeTime(lastModifiedHeader);
-                    lastUpdatedDisplay.textContent = relativeTime ? `Updated: ${relativeTime}` : '';
-                } else {
-                    lastUpdatedDisplay.textContent = ''; // Clear if no demo selected
-                }
-
                 // Set the iframe source
                 demoFrame.style.opacity = 0;
                 setTimeout(() => {
