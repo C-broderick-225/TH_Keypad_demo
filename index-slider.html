@@ -296,8 +296,9 @@
             display: block;
             font-size: 0.75em;
             color: #888;
-            margin-top: 2px;
-            margin-left: 15px; /* Indent slightly */
+            margin-top: -1.5em; /* Adjust to position relative to the link */
+            margin-right: 15px; /* Add right margin */
+            text-align: right; /* Align text to the right */
         }
 
         /* Optional: Close button inside the slider */
@@ -555,7 +556,9 @@
             // --- Fetch Last Updated Dates ---
             async function fetchLastModified(url) {
                 try {
-                    const response = await fetch(url, { method: 'HEAD' });
+                    // Add a cache-busting query parameter
+                    const cacheBustingUrl = `${url}?t=${Date.now()}`;
+                    const response = await fetch(cacheBustingUrl, { method: 'HEAD' });
                     if (response.ok) {
                         const lastModified = response.headers.get('Last-Modified');
                         if (lastModified) {
@@ -564,8 +567,8 @@
                     }
                 } catch (error) {
                     console.error(`Error fetching HEAD for ${url}:`, error);
-                }
-                return null; // Return null if fetch fails or header is missing
+                } // Return null if fetch fails or header is missing
+                return null;
             }
 
             // --- Format Date as Relative Time ---
