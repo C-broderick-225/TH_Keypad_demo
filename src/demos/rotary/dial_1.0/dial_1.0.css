@@ -1,0 +1,97 @@
+/* Basic CSS for the rotary dial demo */
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f0f0f0;
+    font-family: sans-serif;
+}
+
+.container {
+    position: relative;
+    width: 300px;
+    height: 350px; /* Adjusted height to accommodate LED */
+    background-color: #ccc;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column; /* Stack LED and dial */
+    align-items: center;
+}
+
+.led-status {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 20px;
+    height: 20px;
+    background-color: grey; /* Default off state */
+    border-radius: 50%;
+    border: 1px solid #555;
+}
+
+.dial-assembly {
+    position: relative;
+    width: 250px;
+    height: 250px;
+    margin-top: 40px; /* Space below LED */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.outer-ring,
+.inner-ring,
+.dial {
+    position: absolute;
+    border-radius: 50%;
+}
+
+.outer-ring {
+    width: 100%; /* 250px */
+    height: 100%; /* 250px */
+    background-color: #555;
+    cursor: pointer;
+    border: 5px solid #444;
+    box-sizing: border-box;
+}
+
+.inner-ring {
+    width: 70%; /* 175px */
+    height: 70%; /* 175px */
+    background-color: #777;
+    cursor: pointer;
+    border: 5px solid #666;
+    box-sizing: border-box;
+}
+
+.dial {
+    width: 50%; /* 125px */
+    height: 50%; /* 125px */
+    background-color: #eee;
+    border: 3px solid #bbb;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    /* Rotation will be handled by JS */
+    transform-origin: center center;
+}
+
+.dial-pointer {
+    position: absolute;
+    width: 4px;
+    height: 50%; /* Half the dial height */
+    background-color: red;
+    top: 0;
+    left: calc(50% - 2px);
+    transform-origin: bottom center;
+    /* Rotation will be handled by JS */
+}
+
+.dial-numbers {
+    /* Style numbers later */
+} 
